@@ -198,7 +198,7 @@ void DrawRecord();		//6 画纪录
 void RefreshCanvas();	//7 更新非战斗画面
 void UpdateFight();		//8 更新战斗画面
 void DrawRoundNum();	//9 画战斗回合数
-//void ClrScr();			//10 清屏
+void ClrScr();			//10 清屏
 void DrawPic(const char *);	//11 在屏幕上显示图片
 void ShowAbout();		//12 显示作品的信息	
 void FlipPage();		//13 将离屏页面的内容传送到主页面
@@ -216,6 +216,7 @@ Role * GetNpcbyID(int);				//7 得到npc的指针
 void RelayoutNpc();					//8 切换地图时，重新加载NPC
 void GotoMap(Map *);				//9 主角走到新的地图
 //void PressKey(DWORD key);			//10等待按键松开
+void WaitKeyRelease();
 void play_sound(const char *);			//11 播放声音
 
 //操作游戏数据函数

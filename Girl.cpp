@@ -374,7 +374,7 @@ int main(int argc, char ** argv)
 
 		MainLoop();
         SDL_Flip(screen);
-        SDL_Delay(80);
+        SDL_Delay(100);
     }
 
 
@@ -661,6 +661,7 @@ void MainMove()
     Uint8 *keys = SDL_GetKeyState(NULL);
 
     if (keys[SDLK_ESCAPE]) {
+      WaitKeyRelease();
 		DrawSystemMenu();
 		Flag = SYSTEM_MENU_;
 		return;
@@ -885,7 +886,7 @@ void FightEnd()
 				}
 				if (current_enemy == &fFeitu )	//如果输给匪徒
 				{
-					//ClrScr();					
+					ClrScr();					
 					common_diag.set_text("匪徒：小……姑娘，既然你……你输了，那就别怪我了，来……来，我帮你宽……衣！哈……哈！@阿青：呜……，想不到我竟被这样的人……@…… ……@你现在很虚弱，还是在床上休息一下吧！");
 					common_diag.show( screen);
 					//FlipPage();
@@ -896,7 +897,7 @@ void FightEnd()
 				}
 				if(current_enemy == &fShangping)	//如果输给商平
 				{
-					//ClrScr();					
+					ClrScr();					
 					common_diag.set_text("商平：哈哈！小姑娘，知道我的厉害了吧？来，让你看看，我还有更厉害的！@阿青：呜……，不要那么粗暴啦！@…… ……@你现在很虚弱，还是在床上休息一下吧！");
 					common_diag.show( screen);
 					//FlipPage();
@@ -907,7 +908,7 @@ void FightEnd()
 				}
 				if(current_enemy == &fYehaizi)
 				{
-					//ClrScr();
+					ClrScr();
 					common_diag.set_text("野孩子：还要努力呀！@阿青：我下次会赢的！@……@你现在很虚弱，在床上休息一下再出去吧！");
 					common_diag.show( screen);
 					//FlipPage();
@@ -1057,6 +1058,7 @@ void GameMessage()
 	if(keys[SDLK_SPACE])
 	{
 		//PressKey(VK_SPACE);
+      WaitKeyRelease();
 		if (common_diag.is_over())
 		{
 			if(TrapNum == 210)
@@ -1076,7 +1078,7 @@ void GameMessage()
 			}
 			if(TrapNum == 221)
 			{
-				//ClrScr();
+				ClrScr();
 				//FlipPage();
 				TrapNum = 222;
 				Flag = AUTO_PLAY_;
@@ -1136,7 +1138,7 @@ void AutoPlay()
 	case 200:	//从越国到吴国
 		Aqing.set_location(3,0,240,SCR_H-40);
 		GotoMap(&Map_Wuguo);
-		//ClrScr();
+		ClrScr();
 		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于来到了吴国都城前。");
 		common_diag.show(screen);
 		//FlipPage();
@@ -1145,7 +1147,7 @@ void AutoPlay()
 	case 201:	//从吴国到越国
 		Aqing.set_location(0,0, 200,100);
 		GotoMap(&Map_outside);
-		//ClrScr();
+		ClrScr();
 		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于回到了越国都城郊外。");
 		common_diag.show(screen);
 		//FlipPage();
@@ -1680,7 +1682,7 @@ void TreatNpc()
 	case 303:
 		fAqing.set_hp(fAqing.HP );
 		common_diag.set_text("你在你的小床上睡到第二天早晨！@你的体力恢复了！");
-		//ClrScr();
+		ClrScr();
 		common_diag.show(screen);
 		//FlipPage();
 		//play_sound("voc\\Refresh.wav");
@@ -1724,6 +1726,7 @@ void GameTitle()
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
 	{
 		//PressKey(VK_ESCAPE);
+      WaitKeyRelease();
 		Flag = GAME_EXIT_;
 		return;
 	}
@@ -1773,6 +1776,7 @@ void GameTitle()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		StartMenu[selected].Sel  = 0;
@@ -1786,6 +1790,7 @@ void GameTitle()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		StartMenu[selected].Sel = 0;
@@ -1819,6 +1824,7 @@ void System_Menu()
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
 	{
 		//PressKey(VK_ESCAPE);
+      WaitKeyRelease();
 		RefreshCanvas();
 		Flag = MAIN_MOVE_;
 		return;
@@ -1870,6 +1876,7 @@ void System_Menu()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		SystemMenu[selected].Sel = 0;
@@ -1883,6 +1890,7 @@ void System_Menu()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		SystemMenu[selected].Sel = 0;
@@ -1904,6 +1912,7 @@ void Load()
 	if(keys[SDLK_ESCAPE])
 	{
 		//PressKey(VK_ESCAPE);
+      WaitKeyRelease();
 		RefreshCanvas();
 		DrawSystemMenu();
 		//FlipPage();
@@ -1950,6 +1959,7 @@ void Load()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
@@ -1963,6 +1973,7 @@ void Load()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
@@ -1983,6 +1994,7 @@ void Store()
 	if(keys[SDLK_ESCAPE])
 	{
 		//PressKey(VK_ESCAPE);
+      WaitKeyRelease();
 		RefreshCanvas();
 		DrawSystemMenu();
 		Flag = SYSTEM_MENU_;
@@ -2026,6 +2038,7 @@ void Store()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
@@ -2039,6 +2052,7 @@ void Store()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
@@ -2098,6 +2112,7 @@ void WaitSelect()
 	{
 		//PressKey(VK_DOWN);
 		//PressKey(VK_UP);
+      WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
       PlayWavSound(CHANGE_SEL);
 		SelectMenu[0].Sel = !SelectMenu[0].Sel;
@@ -2248,13 +2263,14 @@ void CheckAbout()
 //}
 
 //清屏
-//void ClrScr()
-//{
-//	DDBLTFX fx;
-//	fx.dwSize = sizeof(fx);
-//	fx.dwFillColor = RGB(0,0,0);
-//	screen->Blt (NULL,NULL,NULL,DDBLT_WAIT|DDBLT_COLORFILL,&fx);
-//}
+void ClrScr()
+{
+	// DDBLTFX fx;
+	// fx.dwSize = sizeof(fx);
+	// fx.dwFillColor = RGB(0,0,0);
+	// screen->Blt (NULL,NULL,NULL,DDBLT_WAIT|DDBLT_COLORFILL,&fx);
+  SDL_FillRect(screen, NULL, 0);
+}
 
 //更新非战斗画面
 void RefreshCanvas()
@@ -2673,6 +2689,18 @@ void SceneChange( )
 //	{
 //	}
 //}
+
+void WaitKeyRelease()
+{
+  SDL_Event e;
+  while(true){
+    SDL_PollEvent(&e);
+    if(e.type == SDL_KEYUP)
+      break;
+    else
+      SDL_Delay(20);
+  }
+}
 
 //播放声音
 void play_sound(const char * path)
