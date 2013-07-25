@@ -849,6 +849,7 @@ void FightEnd()
 		if (common_diag.is_over()) {
 			if (fAqing.cHP == 0)	//如果阿青失败
 			{
+              fAqing.cHP = 1;
 				if(current_enemy == &fJianke)
 				{
 					RefreshCanvas();
