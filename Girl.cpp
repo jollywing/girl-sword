@@ -2,9 +2,10 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include "Girl.h"
 #include "assist.h"
-
+#include "SdlSys.h"
 
 //************************初始化地图数据****************************************
 	
@@ -358,6 +359,7 @@ int main(int argc, char ** argv)
 
     InitSDL( windowed );
     OpenFonts();
+    InitAudio();
 
 	//bActive = TRUE;
 	Flag = GAME_LOAD_;	//设置游戏进度 
@@ -376,6 +378,7 @@ int main(int argc, char ** argv)
     }
 
 
+    ShutdownAudio();
     CloseFonts();
     FreeSDL();
 
@@ -797,7 +800,8 @@ void Fighting()
 	if (frame_fight >= 6) {
 		if(fAqing.bAttack) {
 			if (!(current_enemy->can_defend(fAqing.Attack ))) {
-				play_sound("voc\\Victory.wav");
+              //play_sound("voc\\Victory.wav");
+              PlayWavSound(QING_VICT);
 				if (current_enemy->Attack <= fAqing.Defend)
 				{
 					fAqing.HP += 1;
@@ -819,7 +823,8 @@ void Fighting()
 		}
 		else {
 			if(!(fAqing.can_defend(current_enemy->Attack))) {
-				play_sound("voc\\Fail.wav");
+              //play_sound("voc\\Fail.wav");
+              PlayWavSound(QING_FAIL);
 				sprintf(temp, "你输给了%s！", current_enemy->Name );
 				common_diag.set_text(temp);
 				common_diag.show(screen);
@@ -1625,7 +1630,8 @@ void TreatNpc()
 		Flag = GAME_MESSAGE_;
 		break;
 	case 301:	//范蠡的宝箱
-		play_sound("voc\\OpenBox.wav");
+      //play_sound("voc\\OpenBox.wav");
+      PlayWavSound(OPEN_BOX);
 		if (box_fanli.Step == 1)
 		{
 			common_diag.set_text("宝箱已经被打开过了！");
@@ -1646,7 +1652,8 @@ void TreatNpc()
 		break;
 
 	case 302: //宝箱
-		play_sound("voc\\OpenBox.wav");
+      //play_sound("voc\\OpenBox.wav");
+      PlayWavSound(OPEN_BOX);
 		if(box_caoyuan.Step == 1)
 		{
 			common_diag.set_text("宝箱已经被打开过了！");
@@ -1676,11 +1683,13 @@ void TreatNpc()
 		//ClrScr();
 		common_diag.show(screen);
 		//FlipPage();
-		play_sound("voc\\Refresh.wav");
+		//play_sound("voc\\Refresh.wav");
+        PlayWavSound(QING_REFRESH);
 		Flag = GAME_MESSAGE_;
 		break;
 	case 304:	//剑客的宝箱
-		play_sound("voc\\OpenBox.wav");
+      //play_sound("voc\\OpenBox.wav");
+      PlayWavSound(OPEN_BOX);
 		if(box_jianke.Step == 1)
 		{
 			common_diag.set_text("宝箱已经被打开过了！");
@@ -1723,7 +1732,8 @@ void GameTitle()
 	if( keys[SDLK_SPACE] )	
 	{
 		//PressKey(VK_SPACE);
-		play_sound("voc\\PushButton.wav");
+		//play_sound("voc\\PushButton.wav");
+      PlayWavSound(SELECT);
 		if (StartMenu[0].Sel )
 		{
 			RefreshCanvas();
@@ -1763,7 +1773,8 @@ void GameTitle()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		StartMenu[selected].Sel  = 0;
 		selected++;
 		if (selected >= 4)
@@ -1775,7 +1786,8 @@ void GameTitle()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		StartMenu[selected].Sel = 0;
 		selected--;
 		if(selected <0)
@@ -1815,7 +1827,8 @@ void System_Menu()
 	if(keys[SDLK_SPACE])	//按下空格或回车
 	{
 		//PressKey(VK_SPACE);
-		play_sound("voc\\PushButton.wav");
+		//play_sound("voc\\PushButton.wav");
+      PlayWavSound(SELECT);
 		if(SystemMenu[0].Sel )
 		{
 			DrawStateDetail();
@@ -1857,7 +1870,8 @@ void System_Menu()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		SystemMenu[selected].Sel = 0;
 		selected++;
 		if (selected >= 4)
@@ -1869,7 +1883,8 @@ void System_Menu()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		SystemMenu[selected].Sel = 0;
 		selected--;
 		if (selected < 0)
@@ -1910,7 +1925,8 @@ void Load()
 	if(	keys[SDLK_SPACE])
 	{
 		//PressKey(VK_SPACE);
-		play_sound("voc\\PushButton.wav");
+		//play_sound("voc\\PushButton.wav");
+      PlayWavSound(SELECT);
         SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
 		
 		if(LoadData(GameRecord[selected].Location ))
@@ -1934,7 +1950,8 @@ void Load()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
 		selected++;
 		if (selected >= 3)
@@ -1946,7 +1963,8 @@ void Load()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
 		selected--;
 		if(selected <0)
@@ -1985,7 +2003,8 @@ void Store()
 	if(	keys[SDLK_SPACE])
 	{
 		//PressKey(VK_SPACE);
-		play_sound("voc\\PushButton.wav");
+		//play_sound("voc\\PushButton.wav");
+      PlayWavSound(SELECT);
         SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
 		
 		if(StoreData(GameRecord[selected].Location))
@@ -2007,7 +2026,8 @@ void Store()
 	if(keys[SDLK_DOWN])
 	{
 		//PressKey(VK_DOWN);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
 		selected++;
 		if (selected >= 3)
@@ -2019,7 +2039,8 @@ void Store()
 	else if(keys[SDLK_UP])
 	{
 		//PressKey(VK_UP);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		GameRecord[selected].Selected  = 0;
 		selected--;
 		if(selected <0)
@@ -2059,7 +2080,8 @@ void WaitSelect()
 	if( keys[SDLK_SPACE] )	
 	{
 		//PressKey(VK_SPACE);
-		play_sound("voc\\PushButton.wav");
+		//play_sound("voc\\PushButton.wav");
+      PlayWavSound(SELECT);
 		if (SelectMenu[0].Sel )
 		{
 			Flag = SELECT_YES_;	 
@@ -2076,7 +2098,8 @@ void WaitSelect()
 	{
 		//PressKey(VK_DOWN);
 		//PressKey(VK_UP);
-		play_sound("voc\\ChangeButton.wav");
+		//play_sound("voc\\ChangeButton.wav");
+      PlayWavSound(CHANGE_SEL);
 		SelectMenu[0].Sel = !SelectMenu[0].Sel;
 		SelectMenu[1].Sel = !SelectMenu[1].Sel;
 		DrawSelectMenu();
@@ -2654,6 +2677,12 @@ void SceneChange( )
 //播放声音
 void play_sound(const char * path)
 {
+  int i;
+  for (i = 0; i < SND_NUM; i++) {
+    if(!strcmp(path, wav_files[i]))
+      break;
+  }
+  PlayWavSound(i);
 	//PlaySound(NULL, rpg_app, SND_PURGE);
 	//PlaySound(path, rpg_app, SND_ASYNC|SND_NOWAIT);
 }
@@ -2849,15 +2878,15 @@ void InitData()
 	Shiwei.role_set(114, "吴吉庆", 95,60, 225,225,2,3, other_yue,16, 114);	//26
 
 	//初始化战斗角色
-	fAqing.init_fighter(1, 0, "阿青",100, 20,15, 250,235, 60,85, 0,1, fight, "voc\\Aqing.wav", message_font);	//1
-	fWushi1.init_fighter(110, 1, "吴国剑士甲", 90, 20,5, 120,220, 60,85, 1, 0,fight, "voc\\Wujianshi.wav", message_font);	//2
-	fWushi2.init_fighter(111, 1, "吴国剑士乙", 100, 20,10, 120,240, 70,100, 1,0,fight, "voc\\Wujianshi.wav", message_font);	//3
-	fYehaizi.init_fighter(4, 3, "草原上的野孩子", 465,125,100, 100,250,60,85,1,0,fight, "voc\\Yehaizi.wav", message_font);	//4
-	fJianke.init_fighter(5, 4,"神秘剑客",1100, 160,150, 120,210, 60,85, 1,0,fight, "voc\\Jianke.wav", message_font);	//5
-	fWushi.init_fighter(16, 5,"绍兴武师", 120, 30, 18, 140,230, 60,85, 1,0,fight, "voc\\Wushi.wav", message_font);	//6
-	fFeitu.init_fighter(112,2, "口痴的匪徒", 200, 42,40, 140,140, 60,85, 1,0, fight, "voc\\Feitu.wav", message_font);//7
-	fShangping.init_fighter(113, 2, "悍匪商平", 300, 75,50, 140, 220, 60,85, 1,0, fight, "voc\\Feitu.wav", message_font);	//8
-	fShiwei.init_fighter(114, 6, "西施的侍卫吴吉庆", 1200, 225, 250, 140,255, 60,85, 1,0, fight, "voc\\Jianke.wav", message_font);
+	fAqing.init_fighter(1, 0, "阿青",100, 20,15, 250,235, 60,85, 0,1, fight, "voc/Aqing.wav", message_font);	//1
+	fWushi1.init_fighter(110, 1, "吴国剑士甲", 90, 20,5, 120,220, 60,85, 1, 0,fight, "voc/Wujianshi.wav", message_font);	//2
+	fWushi2.init_fighter(111, 1, "吴国剑士乙", 100, 20,10, 120,240, 70,100, 1,0,fight, "voc/Wujianshi.wav", message_font);	//3
+	fYehaizi.init_fighter(4, 3, "草原上的野孩子", 465,125,100, 100,250,60,85,1,0,fight, "voc/Yehaizi.wav", message_font);	//4
+	fJianke.init_fighter(5, 4,"神秘剑客",1100, 160,150, 120,210, 60,85, 1,0,fight, "voc/Jianke.wav", message_font);	//5
+	fWushi.init_fighter(16, 5,"绍兴武师", 120, 30, 18, 140,230, 60,85, 1,0,fight, "voc/Wushi.wav", message_font);	//6
+	fFeitu.init_fighter(112,2, "口痴的匪徒", 200, 42,40, 140,140, 60,85, 1,0, fight, "voc/Feitu.wav", message_font);//7
+	fShangping.init_fighter(113, 2, "悍匪商平", 300, 75,50, 140, 220, 60,85, 1,0, fight, "voc/Feitu.wav", message_font);	//8
+	fShiwei.init_fighter(114, 6, "西施的侍卫吴吉庆", 1200, 225, 250, 140,255, 60,85, 1,0, fight, "voc/Jianke.wav", message_font);
 
 	//地图中加入Npc
 	Map_aqing.add_npc(&AqingMa, AqingMa.X, AqingMa.Y);	

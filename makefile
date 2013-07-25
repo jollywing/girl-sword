@@ -7,7 +7,7 @@ lflags = `sdl-config --libs` -lSDL_ttf
 cc = g++
 
 bin = girl-sword
-objs = Girl.o Map.o Role.o Fighter.o Menu.o Record.o Dialog.o assist.o
+objs = Girl.o Map.o Role.o Fighter.o Menu.o Record.o Dialog.o assist.o SdlSys.o
 
 # on mingw, $(lflags) must be placed after $(objs)
 $(bin): $(objs)
