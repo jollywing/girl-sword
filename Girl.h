@@ -73,16 +73,6 @@ SDL_Color message_color;
 SDL_Color dlg_color;
 
 
-//地图
-Map Map_aqing;	//1
-Map Map_shaoxing;	//2
-Map Map_citydoor;	//3
-Map Map_fanli;	//4
-Map Map_Wuguo;	//5
-Map Map_caoyuan;	//6
-Map Map_Gongdian;	//7
-Map Map_outside;	//8
-Map Map_Xiangfang;	//9
 
 //角色
 Role Aqing;		//1 主角阿青

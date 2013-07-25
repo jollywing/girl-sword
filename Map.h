@@ -1,13 +1,70 @@
 #ifndef __MAPH__
 #define __MAPH__
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 #include "Role.h"
 
 #define SCR_W 480
 #define SCR_H 320
 //BOOL flash;
+
+// Map 1
+extern short Tile_aqing[10][15];
+extern short Trap_aqing[10][15];
+extern short Block_aqing[10][15];
+
+// Map 2
+extern short Tile_shaoxing[10][15];
+extern short Trap_shaoxing[10][15];
+extern short Block_shaoxing[10][15];
+
+// Map 3
+extern short Tile_citydoor[10][15];
+extern short Trap_citydoor[10][15];
+extern short Block_citydoor[10][15];
+
+// Map 4
+extern short Tile_fanli[10][15];
+extern short Trap_fanli[10][15];
+extern short Block_fanli[10][15];
+
+// Map 5
+extern short Tile_xiangfang[10][15];
+extern short Trap_xiangfang[10][15];
+extern short Block_xiangfang[10][15];
+
+// Map 6
+extern short Tile_outside[10][15];
+extern short Trap_outside[10][15];
+extern short Block_outside[10][15];
+
+// Map 7
+extern short Tile_wuguo[10][15];
+extern short Trap_wuguo[10][15];
+extern short Block_wuguo[10][15];
+
+// Map 8
+extern short Tile_caoyuan[10][15];
+extern short Trap_caoyuan[10][15];
+extern short Block_caoyuan[10][15];
+
+// Map 9
+extern short Trap_gongdian[10][15];
+extern short Block_gongdian[10][15];
+
+class Map;
+
+//地图
+extern Map Map_aqing;	//1
+extern Map Map_shaoxing;	//2
+extern Map Map_citydoor;	//3
+extern Map Map_fanli;	//4
+extern Map Map_Wuguo;	//5
+extern Map Map_caoyuan;	//6
+extern Map Map_Gongdian;	//7
+extern Map Map_outside;	//8
+extern Map Map_Xiangfang;	//9
 
 //地图类声明
 class Map
@@ -48,8 +105,5 @@ public:
 	short check_trap(int xCurrent,int yCurrent);
 	short npc_in_map(Role *);
 };
-
-
-
 
 #endif
