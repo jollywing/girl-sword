@@ -1,8 +1,8 @@
 # This is makefile for Linux. 
 # It is also can be used in mingw (with sdl installed) on  Windows.
 
-cflags = -I/usr/include `sdl-config --cflags`
-lflags = `sdl-config --libs` -lSDL_ttf
+cflags = -I/usr/include `sdl-config --cflags` -g
+lflags = `sdl-config --libs` -lSDL_ttf -g
 
 cc = g++
 
@@ -14,7 +14,8 @@ objs = Girl.o Map.o Role.o Fighter.o Menu.o Record.o Dialog.o SdlSys.o\
 $(bin): $(objs)
 	$(cc) -o $@ $(objs) $(lflags)
 
-Girl.o: Girl.h
+Girl.o: Girl.h Script.h Variable.h
+Script.o: Script.h Variable.h
 
 %.o:%.cpp
 	$(cc) $(cflags) -c $<

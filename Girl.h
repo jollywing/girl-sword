@@ -87,6 +87,8 @@ Role * GetNpcbyID(int);				//7 得到npc的指针
 void RelayoutNpc();					//8 切换地图时，重新加载NPC
 void GotoMap(Map *);				//9 主角走到新的地图
 //void PressKey(DWORD key);			//10等待按键松开
+void MoveNpc();
+
 void WaitKeyRelease();
 
 //操作游戏数据函数

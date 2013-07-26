@@ -13,9 +13,9 @@ using namespace std;
 
 CScript * g_script;
 
-void RunScripts(char * szName )
+void RunScripts(const char * szName )
 {
-	//oldFlag = Flag;
+	oldFlag = Flag;
 	Flag = RUN_SCRIPT_;
 
 	if(g_script->FindScripts(szName))
@@ -31,7 +31,7 @@ void RunScripts()
 
 /* construct object with given file name
    and calculate records number */
-CScript::CScript(char * szFileName, char cHeadFlag)
+CScript::CScript(const char * szFileName, char cHeadFlag)
 {
 	//open given file
 	pParserFile.open( szFileName );
@@ -85,7 +85,7 @@ short CScript::GetRecordNum()
 
 void CScript::LoadScripts()
 {
-	char szTemp[ 256 ];
+	char szTemp[ 1024 ];
 	char szName[32];
 	short nScriptsIndex = 0;
 //	short nValidLineIndex = -1;
@@ -122,7 +122,7 @@ void CScript::LoadScripts()
 	}
 }
 
-bool CScript::FindScripts(char * szName)
+bool CScript::FindScripts(const char * szName)
 {
 	if ( !pScripts )
 	{
@@ -179,34 +179,37 @@ bool CScript::Expression()
 
 }
 
-/* ÷¥––“ªÃıΩ≈±æ”Ôæ‰ */
+/* ÊâßË°å‰∏ÄÊù°ËÑöÊú¨ËØ≠Âè• */
 void CScript::ExecuteScriptLine()
 {
+    cout << pScripts[nCurrentLine].szScriptLine << endl;
+
 	nIndexInCurLine = 0;
 
-	// ∂¡»°√¸¡Ó
+	// ËØªÂèñÂëΩ‰ª§
 	char szCommand[ 32 ];
 	ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand );
 
 	char szStringBuffer[256];
 	char szNumberBuffer[4];
 
-	//∏Ò Ω£∫	RETURN
+	//Ê†ºÂºèÔºö	RETURN
 	if ( ! strcmp( szCommand, "RETURN") )
 	{
-		Flag = MAIN_MOVE_;
+		//Flag = MAIN_MOVE_;
+        Flag = oldFlag;
 		return;
 	}
 
-	//∏Ò Ω£∫	IF variable value
+	//Ê†ºÂºèÔºö	IF variable value
 	//			...
 	//			ENDIF
 	else if ( ! strcmp( szCommand, "IF")
 			|| !strcmp(szCommand, "ELSEIF"))
 	{
 		
-		if ( !Expression() ){	//Ãıº˛≤ª≥…¡¢‘ÚÃ¯◊™
-			short nested = 0;	//∑¿÷πifµƒ«∂Ã◊
+		if ( !Expression() ){	//Êù°‰ª∂‰∏çÊàêÁ´ãÂàôË∑≥ËΩ¨
+			short nested = 0;	//Èò≤Ê≠¢ifÁöÑÂµåÂ•ó
 			while(1)
 			{
 				++ nCurrentLine;
@@ -229,7 +232,7 @@ void CScript::ExecuteScriptLine()
 		}		
 	}
 
-	//∏Ò Ω£∫	GOTO scriptname
+	//Ê†ºÂºèÔºö	GOTO scriptname
 	else if(! strcmp(szCommand, "GOTO"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -237,21 +240,21 @@ void CScript::ExecuteScriptLine()
 		--nCurrentLine;
 	}
 
-	//∏Ò Ω£∫	CLS
+	//Ê†ºÂºèÔºö	CLS
 	else if(! strcmp(szCommand, "CLS"))
 	{
 		ClrScr();
 		// FlipPage();
 	}
 
-	//∏Ò Ω£∫	PLAYSOUND filename
+	//Ê†ºÂºèÔºö	PLAYSOUND filename
 	else if(! strcmp(szCommand, "PLAYSOUND"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		play_sound(szStringBuffer);
 	}
 
-	//∏Ò Ω£∫	DRAWPIC filename width height
+	//Ê†ºÂºèÔºö	DRAWPIC filename width height
 	else if(! strcmp(szCommand, "DRAWPIC"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -263,7 +266,7 @@ void CScript::ExecuteScriptLine()
 		//FlipPage();
 	}
 
-	//∏Ò Ω£∫	SET variable value
+	//Ê†ºÂºèÔºö	SET variable value
 	else if(! strcmp(szCommand, "SET"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -271,25 +274,25 @@ void CScript::ExecuteScriptLine()
 		SetVariableValue(szStringBuffer, atoi(szNumberBuffer) );
 	}
 
-	//∏Ò Ω£∫	ADDVAR variable [value]
+	//Ê†ºÂºèÔºö	ADDVAR variable [value]
 	else if(! strcmp(szCommand, "ADDVAR"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
-		if( strcmp(szNumberBuffer, ""))	//»Áπ˚value≤ªŒ™ø’
+		if( strcmp(szNumberBuffer, ""))	//Â¶ÇÊûúvalue‰∏ç‰∏∫Á©∫
 			AddVariable( szStringBuffer, atoi(szNumberBuffer));
 		else
 			AddVariable(szStringBuffer);
 	}
 
-	//∏Ò Ω£∫	GOTOMAP mapName
+	//Ê†ºÂºèÔºö	GOTOMAP mapName
 	else if(! strcmp(szCommand, "GOTOMAP"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		GotoMap( GetMapAddr(szStringBuffer));
 	}
 
-	//∏Ò Ω£∫	TALK string
+	//Ê†ºÂºèÔºö	TALK string
 	else if(! strcmp(szCommand, "TALK"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -300,28 +303,28 @@ void CScript::ExecuteScriptLine()
 		Flag = GAME_MESSAGE_;		
 	}
 
-	//∏Ò Ω£∫	FIGHT name
+	//Ê†ºÂºèÔºö	FIGHT name
 	else if(!strcmp( szCommand, "FIGHT"))
 	{
 		char temp[256];
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		current_enemy = GetFighterAddr(szStringBuffer);
-		sprintf(temp, "ƒ„”Î%sø™ º’Ω∂∑£°", current_enemy->Name );
+		sprintf(temp, "‰Ω†‰∏é%sÂºÄÂßãÊàòÊñóÔºÅ", current_enemy->Name );
 		common_diag.set_text(temp);
 		common_diag.show(screen);
 		// FlipPage();
-		oldFlag = Flag;	//±£¥Ê÷¥––Ω≈±æµƒ◊¥Ã¨
+		oldFlag = Flag;	//‰øùÂ≠òÊâßË°åËÑöÊú¨ÁöÑÁä∂ÊÄÅ
 		Flag = FIGHT_START_;		
 	}
 
-	//∏Ò Ω£∫	REMOVENPC name
+	//Ê†ºÂºèÔºö	REMOVENPC name
 	else if(!strcmp( szCommand, "REMOVENPC"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		current_map->del_npc( GetRoleAddr(szStringBuffer));
 	}
 
-	//∏Ò Ω£∫	ADDNPC name x, y
+	//Ê†ºÂºèÔºö	ADDNPC name x, y
 	else if( !strcmp(szCommand, "ADDNPC"))
 	{
 		short x, y;
@@ -333,7 +336,7 @@ void CScript::ExecuteScriptLine()
 		current_map->add_npc( GetRoleAddr(szStringBuffer),x,y);
 	}
 
-	//∏Ò Ω£∫	SETDIR name dir
+	//Ê†ºÂºèÔºö	SETDIR name dir
 	else if(! strcmp(szCommand, "SETDIR"))
 	{
 		Role * r;
@@ -345,7 +348,7 @@ void CScript::ExecuteScriptLine()
 		// FlipPage();
 	}
 
-	//∏Ò Ω£∫	SETSTEP name step
+	//Ê†ºÂºèÔºö	SETSTEP name step
 	else if(! strcmp(szCommand, "SETSTEP"))
 	{
 		Role * r;
@@ -357,7 +360,7 @@ void CScript::ExecuteScriptLine()
 		// FlipPage();
 	}
 
-	//∏Ò Ω£∫	SETLOCATION name x y
+	//Ê†ºÂºèÔºö	SETLOCATION name x y
 	else if(! strcmp(szCommand, "SETLOCATION"))
 	{
 		Role * r;
@@ -371,7 +374,7 @@ void CScript::ExecuteScriptLine()
 		// FlipPage();
 	}
 
-	//∏Ò Ω£∫	MOVENPC name grid_x, grid_y
+	//Ê†ºÂºèÔºö	MOVENPC name grid_x, grid_y
 	else if(! strcmp(szCommand, "MOVENPC"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -384,7 +387,7 @@ void CScript::ExecuteScriptLine()
 		Flag = NPC_MOVE_;
 	}
 
-	//∏Ò Ω£∫	ADDHP name value
+	//Ê†ºÂºèÔºö	ADDHP name value
 	else if(! strcmp(szCommand, "ADDHP"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -394,7 +397,7 @@ void CScript::ExecuteScriptLine()
 		f->HP += value;
 	}
 
-	//∏Ò Ω£∫	ADDATTACK name value
+	//Ê†ºÂºèÔºö	ADDATTACK name value
 	else if(! strcmp(szCommand, "ADDATTACK"))
 	{
 		Fighter *f;
@@ -405,7 +408,7 @@ void CScript::ExecuteScriptLine()
 		f->Attack += value;
 	}
 
-	//∏Ò Ω£∫	ADDDEFEND name value
+	//Ê†ºÂºèÔºö	ADDDEFEND name value
 	else if(! strcmp(szCommand, "ADDDEFEND"))
 	{
 		Fighter *f;
@@ -416,15 +419,16 @@ void CScript::ExecuteScriptLine()
 		f->Defend += value;
 	}
 
-	//∏Ò Ω£∫	REFRESH name
+	//Ê†ºÂºèÔºö	REFRESH name
 	else if(! strcmp(szCommand, "REFRESH"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		Fighter *f = GetFighterAddr( szStringBuffer);
+        cout << f->Name << endl;
 		f->cHP = f->HP;
 	}
 
-	//∏Ò Ω£∫	SELECT words
+	//Ê†ºÂºèÔºö	SELECT words
 	else if(! strcmp(szCommand, "SELECT"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
@@ -436,7 +440,7 @@ void CScript::ExecuteScriptLine()
 	}
 
 	++ nCurrentLine;
-	//∏Ò Ω:		ENDIFµ»
+	//Ê†ºÂºè:		ENDIFÁ≠â
 	/*else
 	{
 		++nCurrentLine;
@@ -558,7 +562,7 @@ bool CScript::GetWholeLine( char * stString )
 	// ignore space line
 	do {
 		pParserFile.read( reinterpret_cast<char *>(&c), sizeof(c));
-	} while( c == '\n' && !pParserFile.eof() );
+	} while( (c == '\r' || c == '\n') && !pParserFile.eof() );
 
 	if ( pParserFile.eof() )
 		return false;
@@ -570,7 +574,7 @@ bool CScript::GetWholeLine( char * stString )
 		stString[ nIndex ] = c;
 		nIndex ++ ;
 		pParserFile.read ( reinterpret_cast < char * >( &c ), sizeof( c ));
-	} while( c != '\n' && !pParserFile.eof() );
+	} while( c != '\r' && c != '\n' && !pParserFile.eof() );
 
 	stString[ nIndex ] = '\0';
 

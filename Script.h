@@ -8,7 +8,7 @@ using namespace std;
 class CScript;
 
 extern CScript * g_script;
-void RunScripts( char * szName );
+void RunScripts(const char * szName);
 void RunScripts();
 
 /* a script line struct */
@@ -38,10 +38,10 @@ private:
 	stScriptIndex	*pTable;
 
 public:
-	CScript(char * szFileName, char cHeadFlag);
+	CScript(const char * szFileName, char cHeadFlag);
 	~CScript();		
 //	void RunScripts( char * szName );		// run scripts	
-	bool FindScripts( char * szName );	//find scripts whose name is given
+	bool FindScripts( const char * szName );	//find scripts whose name is given
 	void ExecuteScriptLine( );
 
 private:

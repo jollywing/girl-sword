@@ -343,14 +343,32 @@ void InitMaps()
 {
 	//初始化地图	
 	Map_aqing.init_map (10,"阿青家",Tile_aqing,Trap_aqing, Block_aqing,map_tile1, 4, message_font, &message_color);	//1
+    AddMapIndex(Map_aqing.Name, &Map_aqing);
+
 	Map_shaoxing.init_map (11,"绍兴城",Tile_shaoxing,Trap_shaoxing, Block_shaoxing, map_tile1, 4, message_font, &message_color);	//2
+    AddMapIndex(Map_shaoxing.Name, &Map_shaoxing);
+
 	Map_citydoor.init_map (12,"绍兴城门",Tile_citydoor,Trap_citydoor, Block_citydoor,map_tile1, 4, message_font, &message_color);	//3
+    AddMapIndex(Map_citydoor.Name, &Map_citydoor);
+
 	Map_fanli.init_map (13,"范蠡府上",Tile_fanli,Trap_fanli, Block_fanli,map_tile1, 4, message_font, &message_color);	//4
+    AddMapIndex(Map_fanli.Name, &Map_fanli);
+
 	Map_outside.init_map (14,"郊  外",Tile_outside,Trap_outside, Block_outside,map_tile1, 4, message_font, &message_color);	//5
+    AddMapIndex(Map_outside.Name, &Map_outside);
+
 	Map_Wuguo.init_map(16, "吴国城门", Tile_wuguo,Trap_wuguo, Block_wuguo, map_tile1, 4, message_font, &message_color);	//6
+    AddMapIndex(Map_Wuguo.Name, &Map_Wuguo);
+
 	Map_caoyuan.init_map(15, "放牧草原", Tile_caoyuan, Trap_caoyuan, Block_caoyuan, map_tile2, 15, message_font, &message_color);	//7
+    AddMapIndex(Map_caoyuan.Name, &Map_caoyuan);
+
 	Map_Gongdian.init_map(17, "吴王宫", Tile_caoyuan, Trap_gongdian, Block_gongdian, map_tile3, 15, message_font, &message_color);	//8
+    AddMapIndex(Map_Gongdian.Name, &Map_Gongdian);
+
 	Map_Xiangfang.init_map(18, "范蠡府东厢房", Tile_xiangfang, Trap_xiangfang,Block_xiangfang,map_tile1,4, message_font, &message_color);	//9
+    AddMapIndex(Map_Xiangfang.Name, &Map_Xiangfang);
+
 }
 
 stMapIndex maps[MAP_NUM];

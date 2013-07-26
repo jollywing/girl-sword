@@ -1,5 +1,6 @@
 #include "Variable.h"
 #include <string.h>
+#include <iostream>
 
 stVariable vars[VAR_NUMBER];
 
@@ -30,11 +31,12 @@ short GetVariableValue(char * szName )
 	return -1;
 }
 
-bool SetVariableValue(char * szName, short nValue)
+bool SetVariableValue(const char * szName, short nValue)
 {
 	for( int i=0; i<VAR_NUMBER; ++i)
 	{
 		if ( ! strcmp(vars[i].szName, szName)){
+            std::cout << szName << ", Location: " << i << std::endl;
 			vars[i].nValue = nValue;
 			return true;
 		}

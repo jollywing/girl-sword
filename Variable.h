@@ -22,7 +22,7 @@ void ClearVariable();
 short GetVariableValue( char * szName );
 
 //set variable's value
-bool SetVariableValue( char * szName, short nValue);
+bool SetVariableValue( const char * szName, short nValue);
 
 // whether variable is exist
 bool IsVariableExist( char * szName );

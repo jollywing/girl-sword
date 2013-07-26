@@ -2,10 +2,14 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include "Girl.h"
 #include "SdlSys.h"
+#include "Script.h"
+#include "Variable.h"
 
+using namespace std;
 
 // #define CK RGB(0,0,0)	//定义关键色
 #define speed 20	//定义角色移动速度
@@ -169,10 +173,26 @@ void MainLoop()
 	case CHECK_ABOUT_:	//17
 		CheckAbout();
 		break;
+	case RUN_SCRIPT_:
+		RunScripts();
+		break;
+	case NPC_MOVE_:
+		MoveNpc();
+		break;
 	default:
 		GameExit();
 	}
 	
+}
+
+
+// npc移动
+void MoveNpc()
+{
+	if (current_npc->move_to(npc_dest_x, npc_dest_y))
+		Flag = oldFlag;
+	else
+		RefreshCanvas();
 }
 
 //游戏初始化
@@ -181,14 +201,13 @@ void InitGame()
 	//显示初始化界面
     SDL_BlitText("游戏正在初始化。。。", screen, 100, SCR_H/2,
             message_font, message_color);
-
-	InitData();	//初始化游戏数据
-	
-	DrawTitle();
+    SDL_Flip(screen);
 
     game_running = 1;
+	InitData();	//初始化游戏数据
 
 	Flag = GAME_TITLE_;		//推进游戏进度
+    RunScripts("初始化");
 }
 
 
@@ -656,7 +675,7 @@ void GameMessage()
 //			}
 		
 			RefreshCanvas();
-			Flag = MAIN_MOVE_;
+			Flag = oldFlag;
 		}
 		else
 		{			
@@ -891,367 +910,457 @@ void AutoPlay()
 }
 
 //处理NPC事件
+// void TreatNpc()
+// {
+// 	switch(current_npc_id)
+// 	{
+// 	case 2://范蠡
+//         if(defeat_shiwei)
+//             common_diag.set_text("范蠡：小姑娘，希望你幸福！");
+//         else if(get_key) {
+// 			common_diag.set_text("范蠡：小姑娘，宝箱钥匙也给你了，条件也答应你了，答应我的事也努力做到呀。@阿青：恩，我会的。");
+// 		}
+// 		else if (see_jianke) {
+// 			get_key = 1;
+// 			common_diag.set_text("范蠡：呵呵，小姑娘，看到了什么好玩的？@阿青：好啊，老头儿，你利用我啊？@范蠡：小姑娘何出此言？@阿青：那个剑客那么厉害！你让我跟他拼命呀！@范蠡：呵呵，小姑娘是答应和他比试了？@阿青：喂，老头儿，那个家伙是不是真的那么厉害，还是他吓唬我？@范蠡：确实非常厉害，但我看以姑娘的身手，和他走十个回合还不成问题。@阿青：真的？@范蠡：老头儿我很少看错人。@阿青：呵呵。那我答应了有什么好处？@范蠡：西边房间里有口宝箱，箱里有口宝剑，我看很适合姑娘，姑娘如果喜欢就拿去用吧。这是宝箱的钥匙。@阿青得到宝箱钥匙！@阿青：老头很大方呀，哈。……不过呢，如果我和那个家伙交手胜了，你还要答应我一个条件。@范蠡：啊？还有条件呀？@阿青：那当然，如果我赢了，就是帮了老头你的大忙，也是帮了我们国家一个大忙。@范蠡：姑娘深明大义，好，请讲出那个条件吧。@阿青：好，我觉得老头你的胡子很好玩。如果我赢了，老头每天让我玩玩胡子吧，直到我不想玩了为止。@范蠡：……@范蠡…………@范蠡：好吧，我答应姑娘。@阿青：说话算数啊！哈哈。@范蠡：当然。");
+			
+// 		}
+// 		else if (asked_to_house)
+// 		{
+// 			common_diag.set_text("范蠡：去看过了吗？找到什么好玩的没有？@阿青：还没呢。");
+// 		}
+// 		else if (asked_by_fanli)
+// 		{
+// 			asked_to_house = 1;
+// 			common_diag.set_text("范蠡：小姑娘，你来了。@阿青：是呀，来找好玩的东西啦。你这花花草草的还挺漂亮的，改天把我家的羊牵过来放放。@范蠡：呵呵……。@阿青：老头儿，还有什么好玩的？@范蠡：等我想想。@阿青：呵呵，我知道了，你的胡子最好玩，来，让我揪揪……@范蠡：有了！我家东厢房里有好玩的东西，我吩咐仆人让你进去，你自己去看吧。");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("范蠡：……");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+	
+// 	case 4:	//野孩子
+// 		if(defeat_yehaizi)
+// 		{
+// 			common_diag.set_text("野孩子：怎么？要和我比试武功吗？@要和野孩子切磋吗？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else if( see_yehaizi)
+// 		{
+// 			common_diag.set_text("野孩子：你又来了，来吧，打倒我！@战斗开始！");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			current_enemy = &fYehaizi;
+// 			Flag = FIGHT_START_;
+// 		}
+// 		else if(ask_to_caoyuan)
+// 		{
+// 			common_diag.set_text("野孩子：你来了！师父已经和我讲清楚了，师父要我送你的东西就在我身后的箱子里，来吧，赢了我之后自己开箱拿吧！");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			see_yehaizi = 1;
+// 			current_enemy = &fYehaizi;
+// 			Flag = FIGHT_START_;
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("野孩子：你是叫阿青吧？师父和我讲过你，他有件东西要我转交给你，那东西就在我身后的箱子里，来吧，赢了我之后自己开箱拿吧！");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			see_yehaizi = 1;
+// 			current_enemy = &fYehaizi;
+// 			Flag = FIGHT_START_;
+// 		}
+		
+// 		break;
+// 	case 5: //神秘剑客
+// 		if(really_defeat_jianke)
+// 		{
+// 			common_diag.set_text("神秘剑客：姑娘真是天下第一贱！还要和在下比试吗?");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else if(ask_where_fanli)
+// 		{
+// 			common_diag.set_text("神秘剑客：姑娘，你的资质非常难得，要好好利用，攀登贱道高峰。要切磋剑术吗？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else if(defeat_jianke)
+// 		{
+// 			ask_where_fanli = 1;
+// 			common_diag.set_text("神秘剑客：范大夫在吴王宫里。你如果想去找他，可能会有人阻止你见他，而且是个极厉害的对手。@阿青：你怎么知道？@神秘剑客：不告诉你，这个世界要保留一点神秘感，才可爱。@阿青：晕！@神秘剑客：不过，我可以送给你一件真正的宝贝，就在我身后的箱子里。前提是你要打赢我。@阿青：是什么宝贝？@神秘剑客：是把剑，一把至阴至柔的剑，只有在你这样的贱女人手里，才能发挥真正的威力！@阿青：呵呵，想要。");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = GAME_MESSAGE_;
+// 		}
+// 		else if(get_key)
+// 		{
+// 			common_diag.set_text("神秘剑客：姑娘，答应了范大夫的请求，便请努力。现在要和我比试吗？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else if (see_jianke)
+// 		{
+// 			common_diag.set_text("神秘剑客：姑娘肯答应范大夫的请求吗？@阿青：还没和他问清楚。");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = GAME_MESSAGE_;
+// 		}
+// 		else
+// 		{
+// 			see_jianke = 1;
+// 			common_diag.set_text("神秘剑客：你是来和我比试的吗？@阿青：比试？为什么？@神秘剑客：范大夫没和你说吗？如果有人能和我交手十个回合而不败，我就答应他的请求。@阿青：请求，什么请求？@神秘剑客：是这样，我是范大夫府上的食客。范大夫请求我指点越国武士的剑术，但是师父传我的剑术不可外传，我又不好拒绝范大夫，就告诉他，如果有人能和我交手十个回合而不败，我就答应指点一些剑术要领给越国武士。@阿青：有多少人来和你比试过了？@神秘剑客：从我允诺到现在，有一年时间了，不下五十人来过。@阿青：他们都没能和你交手十个回合？@神秘剑客：是。@阿青：哇……。死老头，利用我，我去找他问清楚。");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = GAME_MESSAGE_;
+// 		}
+// 		break;
+// 	case 10: //阿青妈
+// 		if(fAqing.get_hp_percent() < 0.5)
+// 		{
+// 			common_diag.set_text("阿青的娘：倒霉的孩子，又和人打架了吧？精神这么差，去床上休息一下吧！");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("阿青的娘：阿青，这么大个姑娘了，别总闲逛，有时间去城外放放羊！@阿青：院子里不是很多草吗？让它们吃不就行了？@阿青的娘：败家的孩子，咱家什么都没有，就有一点草，还不节省点？@阿青：……");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 11:	//张大爷
+// 		if(defeat_jianke)
+// 		{
+// 			common_diag.set_text("张大爷：姑娘，没想到你年纪这么小就成我们国家的大功臣了！@阿青：当然，比你这老头强多了！");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("张大爷：和人战斗要消耗很多体力，像别的游戏中那样在战斗中吃药其实根本不顶用，最有效的恢复体力的方式就是回家睡觉了。呵呵……@阿青：早就知道了，哼！");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 12:	//李大叔
+// 		if(defeat_jianke)
+// 		{
+// 			common_diag.set_text("李大叔：吴王宫里的夷光妃子是天下第一美人，……一想就要流口水……@阿青：有我美吗？@李大叔：……我没话说了。");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("李大叔：新鲜的蔬菜水果！快来看快来买呀！@阿青：能不能尝个苹果？@李大叔：不行！");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 13:	//越国武士1
+// 		if(defeat_feitu)
+// 		{
+// 			common_diag.set_text("越国武士甲：姑娘，外面的劫匪都怕你了，小小年纪这么厉害呀！@阿青：知道本姑娘厉害就好，眼睛还敢在我身上瞟来瞟去的？");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("越国武士甲：越国去吴国的路上常有悍匪劫财劫色，小姑娘出去玩可不要跑远了！@阿青：不要你管！");			
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 14:	//越国武士2
+// 		if (defeat_jianke)
+// 		{
+// 			common_diag.set_text("越国武士乙：吴国的剑士不会再来了，唉，可怜我英雄无用武之地了。@阿青：陪本姑娘练练？@越国武士乙：……今天不行，肚子不舒服。");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("越国武士乙：每次和吴国剑士比武，都没人推荐我上，不然我早就打得他们哭爹喊娘了！@阿青：吹牛大王！");			
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 15:	//仆人晓月
+// 		if(defeat_jianke)
+// 		{
+// 			common_diag.set_text("仆人晓月：我家主人去吴国了。里面那个男人就开始不规矩，对我动手动脚的，不过我心里满高兴的。");
+// 		}
+// 		else if (see_jianke)
+// 		{
+// 			common_diag.set_text("仆人晓月：里面那个男人好帅的，我每天给他送饭，不知不觉地爱上他了，每天夜里我都好想他。能守在他的屋外也是一种幸福！@阿青：你个花痴！");
+// 		}
+// 		else if (asked_to_house)
+// 		{
+// 			Puren.set_location(0,6,360,130);
+// 			common_diag.set_text("仆人晓月：主人和我说过了，允许你到厢房里去找“好玩”的东西。");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("仆人晓月：你好，我是这里的仆人晓月。");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+
+// 	case 16:	//绍兴城武师
+// 		common_diag.set_text("我看小姑娘也是武林中人，在下爱武成痴，最爱与人切磋，请姑娘不吝赐教！@要与此人过招吗？");
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = BEFORE_SELECT_;
+// 		break;
+
+// 	case 101://吴国卫兵1
+// 		common_diag.set_text("吴国卫兵甲：漂亮的小妞，等大爷下班后去陪大爷喝茶吧，哈哈！@阿青：去找你妈陪吧！");
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 102: //吴国卫兵2
+// 		common_diag.set_text("吴国卫兵乙：小妞，你是越国的吧！别在这转悠，否则别怪我们兄弟对你不客气，嘿嘿！@阿青：看你们谁敢，我手中的剑刺瞎你们双眼！@吴国卫兵乙：（真是凶啊，还是家里的老婆比较温柔……）");
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 112:	//郊外的匪徒
+// 		if(defeat_feitu)
+// 		{
+// 			common_diag.set_text("匪徒：姑……姑娘，有……有什么吩咐……吗？@是否要他陪练武功？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("匪徒：小……小妞，是不是还想……来……来一次啊？@阿青：呸，本姑娘是来找你报仇的！");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			current_enemy = &fFeitu;
+// 			Flag = FIGHT_START_;
+// 		}
+// 		break;
+// 	case 113:
+// 		if(defeat_shangping)
+// 		{
+// 			common_diag.set_text("商平：……@是否要他陪练武功？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("商平：嘿嘿，小妞，再让你见识一下我的厉害！@阿青：哼，跟你拼了！");
+// 			common_diag.show(screen);
+// 			////FlipPage();
+// 			current_enemy = &fShangping;
+// 			Flag = FIGHT_START_;
+// 		}
+// 		break;
+// 	case 114:	//侍卫吴吉庆
+// 		if(defeat_shiwei)
+// 		{
+// 			common_diag.set_text("吴吉庆：打不过你我也无话可说，你要过就过去吧。@吴吉庆：什么？陪你练功？我才没那么傻，让我挨揍，你得经验值呀！");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = GAME_MESSAGE_;
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("吴吉庆：我是夷光妃子的贴身侍卫，有我在这里，谁都别想通过，除非打赢我！你要试试看吗？");
+// 			common_diag.show(screen);
+// 			//FlipPage();
+// 			Flag = BEFORE_SELECT_;
+// 		}
+// 		break;
+
+// 	case 200:
+// 	case 201:	//绵羊
+// 		common_diag.set_text("绵羊：咩……");
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 301:	//范蠡的宝箱
+//       //play_sound("voc\\OpenBox.wav");
+//       PlayWavSound(OPEN_BOX);
+// 		if (box_fanli.Step == 1)
+// 		{
+// 			common_diag.set_text("宝箱已经被打开过了！");
+// 		}
+// 		else if (get_key)
+// 		{
+// 			box_fanli.Step = 1;
+// 			fAqing.Attack += 10;
+// 			common_diag.set_text("你打开范蠡的宝箱，得到了宝剑【非常贱】，攻击力上升10！");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("你没有钥匙，打不开宝箱！");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+
+// 	case 302: //宝箱
+//       //play_sound("voc\\OpenBox.wav");
+//       PlayWavSound(OPEN_BOX);
+// 		if(box_caoyuan.Step == 1)
+// 		{
+// 			common_diag.set_text("宝箱已经被打开过了！");
+// 		}
+// 		else if(defeat_yehaizi)
+// 		{
+// 			common_diag.set_text("你得到了神秘剑客送你的内功心法【浩然正气】！@你领悟了上面的心法，攻击力和防御力都提升 20 ！");
+// 			fAqing.Attack += 20;
+// 			fAqing.Defend += 20;
+// 			box_caoyuan.Step = 1;
+// 		}
+// 		else if(see_yehaizi)
+// 		{
+// 			common_diag.set_text("野孩子：在打赢我之前，请不要动那里面的东西！");
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("野孩子：你是谁？请不要乱动别人的东西！");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 303:
+// 		fAqing.set_hp(fAqing.HP );
+// 		common_diag.set_text("你在你的小床上睡到第二天早晨！@你的体力恢复了！");
+// 		ClrScr();
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		//play_sound("voc\\Refresh.wav");
+//         PlayWavSound(QING_REFRESH);
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	case 304:	//剑客的宝箱
+//       //play_sound("voc\\OpenBox.wav");
+//       PlayWavSound(OPEN_BOX);
+// 		if(box_jianke.Step == 1)
+// 		{
+// 			common_diag.set_text("宝箱已经被打开过了！");
+// 		}
+// 		else if(really_defeat_jianke)
+// 		{
+// 			box_jianke.Step = 1;
+// 			RefreshCanvas();
+// 			common_diag.set_text("你得到了真正适合你的武器【越女贱】，你得攻击力上升80 ，最大战斗力上升160！");
+// 			fAqing.HP += 160;
+// 			fAqing.Attack += 80;
+// 		}
+// 		else
+// 		{
+// 			common_diag.set_text("神秘剑客：请不要随便拿我的东西！");
+// 		}
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = GAME_MESSAGE_;
+// 		break;
+// 	default:
+// 		Flag = MAIN_MOVE_;
+// 	}
+// }
+
 void TreatNpc()
 {
 	switch(current_npc_id)
 	{
 	case 2://范蠡
-        if(defeat_shiwei)
-            common_diag.set_text("范蠡：小姑娘，希望你幸福！");
-        else if(get_key) {
-			common_diag.set_text("范蠡：小姑娘，宝箱钥匙也给你了，条件也答应你了，答应我的事也努力做到呀。@阿青：恩，我会的。");
-		}
-		else if (see_jianke) {
-			get_key = 1;
-			common_diag.set_text("范蠡：呵呵，小姑娘，看到了什么好玩的？@阿青：好啊，老头儿，你利用我啊？@范蠡：小姑娘何出此言？@阿青：那个剑客那么厉害！你让我跟他拼命呀！@范蠡：呵呵，小姑娘是答应和他比试了？@阿青：喂，老头儿，那个家伙是不是真的那么厉害，还是他吓唬我？@范蠡：确实非常厉害，但我看以姑娘的身手，和他走十个回合还不成问题。@阿青：真的？@范蠡：老头儿我很少看错人。@阿青：呵呵。那我答应了有什么好处？@范蠡：西边房间里有口宝箱，箱里有口宝剑，我看很适合姑娘，姑娘如果喜欢就拿去用吧。这是宝箱的钥匙。@阿青得到宝箱钥匙！@阿青：老头很大方呀，哈。……不过呢，如果我和那个家伙交手胜了，你还要答应我一个条件。@范蠡：啊？还有条件呀？@阿青：那当然，如果我赢了，就是帮了老头你的大忙，也是帮了我们国家一个大忙。@范蠡：姑娘深明大义，好，请讲出那个条件吧。@阿青：好，我觉得老头你的胡子很好玩。如果我赢了，老头每天让我玩玩胡子吧，直到我不想玩了为止。@范蠡：……@范蠡…………@范蠡：好吧，我答应姑娘。@阿青：说话算数啊！哈哈。@范蠡：当然。");
-			
-		}
-		else if (asked_to_house)
-		{
-			common_diag.set_text("范蠡：去看过了吗？找到什么好玩的没有？@阿青：还没呢。");
-		}
-		else if (asked_by_fanli)
-		{
-			asked_to_house = 1;
-			common_diag.set_text("范蠡：小姑娘，你来了。@阿青：是呀，来找好玩的东西啦。你这花花草草的还挺漂亮的，改天把我家的羊牵过来放放。@范蠡：呵呵……。@阿青：老头儿，还有什么好玩的？@范蠡：等我想想。@阿青：呵呵，我知道了，你的胡子最好玩，来，让我揪揪……@范蠡：有了！我家东厢房里有好玩的东西，我吩咐仆人让你进去，你自己去看吧。");
-		}
-		else
-		{
-			common_diag.set_text("范蠡：……");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("范蠡");
 		break;
 	
 	case 4:	//野孩子
-		if(defeat_yehaizi)
-		{
-			common_diag.set_text("野孩子：怎么？要和我比试武功吗？@要和野孩子切磋吗？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else if( see_yehaizi)
-		{
-			common_diag.set_text("野孩子：你又来了，来吧，打倒我！@战斗开始！");
-			common_diag.show(screen);
-			//FlipPage();
-			current_enemy = &fYehaizi;
-			Flag = FIGHT_START_;
-		}
-		else if(ask_to_caoyuan)
-		{
-			common_diag.set_text("野孩子：你来了！师父已经和我讲清楚了，师父要我送你的东西就在我身后的箱子里，来吧，赢了我之后自己开箱拿吧！");
-			common_diag.show(screen);
-			//FlipPage();
-			see_yehaizi = 1;
-			current_enemy = &fYehaizi;
-			Flag = FIGHT_START_;
-		}
-		else
-		{
-			common_diag.set_text("野孩子：你是叫阿青吧？师父和我讲过你，他有件东西要我转交给你，那东西就在我身后的箱子里，来吧，赢了我之后自己开箱拿吧！");
-			common_diag.show(screen);
-			//FlipPage();
-			see_yehaizi = 1;
-			current_enemy = &fYehaizi;
-			Flag = FIGHT_START_;
-		}
+		RunScripts("草原上的野孩子");		
+		break;
 		
-		break;
 	case 5: //神秘剑客
-		if(really_defeat_jianke)
-		{
-			common_diag.set_text("神秘剑客：姑娘真是天下第一贱！还要和在下比试吗?");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else if(ask_where_fanli)
-		{
-			common_diag.set_text("神秘剑客：姑娘，你的资质非常难得，要好好利用，攀登贱道高峰。要切磋剑术吗？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else if(defeat_jianke)
-		{
-			ask_where_fanli = 1;
-			common_diag.set_text("神秘剑客：范大夫在吴王宫里。你如果想去找他，可能会有人阻止你见他，而且是个极厉害的对手。@阿青：你怎么知道？@神秘剑客：不告诉你，这个世界要保留一点神秘感，才可爱。@阿青：晕！@神秘剑客：不过，我可以送给你一件真正的宝贝，就在我身后的箱子里。前提是你要打赢我。@阿青：是什么宝贝？@神秘剑客：是把剑，一把至阴至柔的剑，只有在你这样的贱女人手里，才能发挥真正的威力！@阿青：呵呵，想要。");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = GAME_MESSAGE_;
-		}
-		else if(get_key)
-		{
-			common_diag.set_text("神秘剑客：姑娘，答应了范大夫的请求，便请努力。现在要和我比试吗？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else if (see_jianke)
-		{
-			common_diag.set_text("神秘剑客：姑娘肯答应范大夫的请求吗？@阿青：还没和他问清楚。");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = GAME_MESSAGE_;
-		}
-		else
-		{
-			see_jianke = 1;
-			common_diag.set_text("神秘剑客：你是来和我比试的吗？@阿青：比试？为什么？@神秘剑客：范大夫没和你说吗？如果有人能和我交手十个回合而不败，我就答应他的请求。@阿青：请求，什么请求？@神秘剑客：是这样，我是范大夫府上的食客。范大夫请求我指点越国武士的剑术，但是师父传我的剑术不可外传，我又不好拒绝范大夫，就告诉他，如果有人能和我交手十个回合而不败，我就答应指点一些剑术要领给越国武士。@阿青：有多少人来和你比试过了？@神秘剑客：从我允诺到现在，有一年时间了，不下五十人来过。@阿青：他们都没能和你交手十个回合？@神秘剑客：是。@阿青：哇……。死老头，利用我，我去找他问清楚。");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = GAME_MESSAGE_;
-		}
+		RunScripts("神秘剑客");		
 		break;
+
 	case 10: //阿青妈
-		if(fAqing.get_hp_percent() < 0.5)
-		{
-			common_diag.set_text("阿青的娘：倒霉的孩子，又和人打架了吧？精神这么差，去床上休息一下吧！");
-		}
-		else
-		{
-			common_diag.set_text("阿青的娘：阿青，这么大个姑娘了，别总闲逛，有时间去城外放放羊！@阿青：院子里不是很多草吗？让它们吃不就行了？@阿青的娘：败家的孩子，咱家什么都没有，就有一点草，还不节省点？@阿青：……");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("阿青的娘");
 		break;
+		
 	case 11:	//张大爷
-		if(defeat_jianke)
-		{
-			common_diag.set_text("张大爷：姑娘，没想到你年纪这么小就成我们国家的大功臣了！@阿青：当然，比你这老头强多了！");
-		}
-		else
-		{
-			common_diag.set_text("张大爷：和人战斗要消耗很多体力，像别的游戏中那样在战斗中吃药其实根本不顶用，最有效的恢复体力的方式就是回家睡觉了。呵呵……@阿青：早就知道了，哼！");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("张大爷");
 		break;
+
 	case 12:	//李大叔
-		if(defeat_jianke)
-		{
-			common_diag.set_text("李大叔：吴王宫里的夷光妃子是天下第一美人，……一想就要流口水……@阿青：有我美吗？@李大叔：……我没话说了。");
-		}
-		else
-		{
-			common_diag.set_text("李大叔：新鲜的蔬菜水果！快来看快来买呀！@阿青：能不能尝个苹果？@李大叔：不行！");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("李大叔");
 		break;
+		
 	case 13:	//越国武士1
-		if(defeat_feitu)
-		{
-			common_diag.set_text("越国武士甲：姑娘，外面的劫匪都怕你了，小小年纪这么厉害呀！@阿青：知道本姑娘厉害就好，眼睛还敢在我身上瞟来瞟去的？");
-		}
-		else
-		{
-			common_diag.set_text("越国武士甲：越国去吴国的路上常有悍匪劫财劫色，小姑娘出去玩可不要跑远了！@阿青：不要你管！");			
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("越国武士甲");		
 		break;
+		
 	case 14:	//越国武士2
-		if (defeat_jianke)
-		{
-			common_diag.set_text("越国武士乙：吴国的剑士不会再来了，唉，可怜我英雄无用武之地了。@阿青：陪本姑娘练练？@越国武士乙：……今天不行，肚子不舒服。");
-		}
-		else
-		{
-			common_diag.set_text("越国武士乙：每次和吴国剑士比武，都没人推荐我上，不然我早就打得他们哭爹喊娘了！@阿青：吹牛大王！");			
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("越国武士乙");
 		break;
+
 	case 15:	//仆人晓月
-		if(defeat_jianke)
-		{
-			common_diag.set_text("仆人晓月：我家主人去吴国了。里面那个男人就开始不规矩，对我动手动脚的，不过我心里满高兴的。");
-		}
-		else if (see_jianke)
-		{
-			common_diag.set_text("仆人晓月：里面那个男人好帅的，我每天给他送饭，不知不觉地爱上他了，每天夜里我都好想他。能守在他的屋外也是一种幸福！@阿青：你个花痴！");
-		}
-		else if (asked_to_house)
-		{
-			Puren.set_location(0,6,360,130);
-			common_diag.set_text("仆人晓月：主人和我说过了，允许你到厢房里去找“好玩”的东西。");
-		}
-		else
-		{
-			common_diag.set_text("仆人晓月：你好，我是这里的仆人晓月。");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("仆人晓月");
 		break;
 
 	case 16:	//绍兴城武师
-		common_diag.set_text("我看小姑娘也是武林中人，在下爱武成痴，最爱与人切磋，请姑娘不吝赐教！@要与此人过招吗？");
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = BEFORE_SELECT_;
+		RunScripts("武师");
 		break;
 
 	case 101://吴国卫兵1
-		common_diag.set_text("吴国卫兵甲：漂亮的小妞，等大爷下班后去陪大爷喝茶吧，哈哈！@阿青：去找你妈陪吧！");
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("吴国卫兵甲");		
 		break;
+		
 	case 102: //吴国卫兵2
-		common_diag.set_text("吴国卫兵乙：小妞，你是越国的吧！别在这转悠，否则别怪我们兄弟对你不客气，嘿嘿！@阿青：看你们谁敢，我手中的剑刺瞎你们双眼！@吴国卫兵乙：（真是凶啊，还是家里的老婆比较温柔……）");
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("吴国卫兵乙");		
 		break;
+		
 	case 112:	//郊外的匪徒
-		if(defeat_feitu)
-		{
-			common_diag.set_text("匪徒：姑……姑娘，有……有什么吩咐……吗？@是否要他陪练武功？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else
-		{
-			common_diag.set_text("匪徒：小……小妞，是不是还想……来……来一次啊？@阿青：呸，本姑娘是来找你报仇的！");
-			common_diag.show(screen);
-			//FlipPage();
-			current_enemy = &fFeitu;
-			Flag = FIGHT_START_;
-		}
+		RunScripts("匪徒");
 		break;
+		
 	case 113:
-		if(defeat_shangping)
-		{
-			common_diag.set_text("商平：……@是否要他陪练武功？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
-		else
-		{
-			common_diag.set_text("商平：嘿嘿，小妞，再让你见识一下我的厉害！@阿青：哼，跟你拼了！");
-			common_diag.show(screen);
-			////FlipPage();
-			current_enemy = &fShangping;
-			Flag = FIGHT_START_;
-		}
+		RunScripts("悍匪商平");
 		break;
+		
 	case 114:	//侍卫吴吉庆
-		if(defeat_shiwei)
-		{
-			common_diag.set_text("吴吉庆：打不过你我也无话可说，你要过就过去吧。@吴吉庆：什么？陪你练功？我才没那么傻，让我挨揍，你得经验值呀！");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = GAME_MESSAGE_;
-		}
-		else
-		{
-			common_diag.set_text("吴吉庆：我是夷光妃子的贴身侍卫，有我在这里，谁都别想通过，除非打赢我！你要试试看吗？");
-			common_diag.show(screen);
-			//FlipPage();
-			Flag = BEFORE_SELECT_;
-		}
+		RunScripts("吴吉庆");
 		break;
 
 	case 200:
 	case 201:	//绵羊
-		common_diag.set_text("绵羊：咩……");
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("绵羊");
 		break;
+		
 	case 301:	//范蠡的宝箱
-      //play_sound("voc\\OpenBox.wav");
-      PlayWavSound(OPEN_BOX);
-		if (box_fanli.Step == 1)
-		{
-			common_diag.set_text("宝箱已经被打开过了！");
-		}
-		else if (get_key)
-		{
-			box_fanli.Step = 1;
-			fAqing.Attack += 10;
-			common_diag.set_text("你打开范蠡的宝箱，得到了宝剑【非常贱】，攻击力上升10！");
-		}
-		else
-		{
-			common_diag.set_text("你没有钥匙，打不开宝箱！");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("范蠡的宝箱");
 		break;
 
 	case 302: //宝箱
-      //play_sound("voc\\OpenBox.wav");
-      PlayWavSound(OPEN_BOX);
-		if(box_caoyuan.Step == 1)
-		{
-			common_diag.set_text("宝箱已经被打开过了！");
-		}
-		else if(defeat_yehaizi)
-		{
-			common_diag.set_text("你得到了神秘剑客送你的内功心法【浩然正气】！@你领悟了上面的心法，攻击力和防御力都提升 20 ！");
-			fAqing.Attack += 20;
-			fAqing.Defend += 20;
-			box_caoyuan.Step = 1;
-		}
-		else if(see_yehaizi)
-		{
-			common_diag.set_text("野孩子：在打赢我之前，请不要动那里面的东西！");
-		}
-		else
-		{
-			common_diag.set_text("野孩子：你是谁？请不要乱动别人的东西！");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("草原上的宝箱");
 		break;
+		
 	case 303:
-		fAqing.set_hp(fAqing.HP );
-		common_diag.set_text("你在你的小床上睡到第二天早晨！@你的体力恢复了！");
-		ClrScr();
-		common_diag.show(screen);
-		//FlipPage();
-		//play_sound("voc\\Refresh.wav");
-        PlayWavSound(QING_REFRESH);
-		Flag = GAME_MESSAGE_;
+		RunScripts("阿青的小床");
 		break;
+		
 	case 304:	//剑客的宝箱
-      //play_sound("voc\\OpenBox.wav");
-      PlayWavSound(OPEN_BOX);
-		if(box_jianke.Step == 1)
-		{
-			common_diag.set_text("宝箱已经被打开过了！");
-		}
-		else if(really_defeat_jianke)
-		{
-			box_jianke.Step = 1;
-			RefreshCanvas();
-			common_diag.set_text("你得到了真正适合你的武器【越女贱】，你得攻击力上升80 ，最大战斗力上升160！");
-			fAqing.HP += 160;
-			fAqing.Attack += 80;
-		}
-		else
-		{
-			common_diag.set_text("神秘剑客：请不要随便拿我的东西！");
-		}
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = GAME_MESSAGE_;
+		RunScripts("剑客的宝箱");
 		break;
+		
 	default:
 		Flag = MAIN_MOVE_;
 	}
@@ -1260,7 +1369,8 @@ void TreatNpc()
 //游戏篇头
 void GameTitle()
 {	
-	
+    DrawTitle();
+
     Uint8 *keys = SDL_GetKeyState(NULL);
 
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
@@ -1349,6 +1459,11 @@ void GameExit()
     DrawEnd();
 	current_map = NULL;
 	current_enemy = NULL;
+
+    if(g_script) {
+        delete g_script;
+        g_script = NULL;
+    }
 
     static short counter = 6;
     if(counter == 0)
@@ -1635,15 +1750,18 @@ void WaitSelect()
 	{
 		//PressKey(VK_SPACE);
 		//play_sound("voc\\PushButton.wav");
-      PlayWavSound(SELECT);
+        PlayWavSound(SELECT);
 		if (SelectMenu[0].Sel )
 		{
-			Flag = SELECT_YES_;	 
+            SetVariableValue("选择", 1);
+			//Flag = SELECT_YES_;	 
 		}
 		else if (SelectMenu[1].Sel)
 		{
-			Flag = SELECT_NO_;
+            SetVariableValue("选择", 0);
+			//Flag = SELECT_NO_;
 		}
+        Flag = oldFlag;
 		return;
 	}
 	
@@ -1652,9 +1770,9 @@ void WaitSelect()
 	{
 		//PressKey(VK_DOWN);
 		//PressKey(VK_UP);
-      WaitKeyRelease();
+        WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
+        PlayWavSound(CHANGE_SEL);
 		SelectMenu[0].Sel = !SelectMenu[0].Sel;
 		SelectMenu[1].Sel = !SelectMenu[1].Sel;
 		DrawSelectMenu();
@@ -1665,67 +1783,72 @@ void WaitSelect()
 
 void SelectYes()
 {
-	RefreshCanvas();
-	char temp[200];
-	if (current_npc_id == 5)
-	{
-		current_enemy = &fJianke;
-		sprintf(temp, "阿青：好，我试一下。@你与%s发生了战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else if(current_npc_id == 16)
-	{
-		current_enemy = &fWushi;
-		sprintf(temp, "阿青：好，就让你见识一下本姑娘的厉害！@你与%s发生了战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else if(current_npc_id == 112)
-	{
-		current_enemy = &fFeitu;
-		sprintf(temp, "阿青：手下败将，陪姑娘练练手！@匪徒：姑……姑娘，今天能……不能休……休息？@阿青：废话少说，来！@你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else if(current_npc_id == 113)
-	{
-		current_enemy = &fShangping;
-		sprintf(temp, "阿青：商大坏人，陪姑娘练练手罢！@商平：练就练，谁怕谁？哪一天你栽到我手上，让你好看！@阿青：哈哈，开始吧！@你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else if(current_npc_id == 4)
-	{
-		current_enemy = &fYehaizi;
-		sprintf(temp, "阿青：恩，请多指教！你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else if(current_npc_id == 114)
-	{
-		current_enemy = &fShiwei;
-		sprintf(temp, "阿青：当然，别以为你长得帅我就不打你！@你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		Flag = FIGHT_START_;
-	}
-	else
-	{
-		Flag = MAIN_MOVE_;
-	}
+    RunScripts("选择是");
+    Flag = oldFlag;
 }
+// void SelectYes()
+// {
+// 	RefreshCanvas();
+// 	char temp[200];
+// 	if (current_npc_id == 5)
+// 	{
+// 		current_enemy = &fJianke;
+// 		sprintf(temp, "阿青：好，我试一下。@你与%s发生了战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else if(current_npc_id == 16)
+// 	{
+// 		current_enemy = &fWushi;
+// 		sprintf(temp, "阿青：好，就让你见识一下本姑娘的厉害！@你与%s发生了战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else if(current_npc_id == 112)
+// 	{
+// 		current_enemy = &fFeitu;
+// 		sprintf(temp, "阿青：手下败将，陪姑娘练练手！@匪徒：姑……姑娘，今天能……不能休……休息？@阿青：废话少说，来！@你与%s发生战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else if(current_npc_id == 113)
+// 	{
+// 		current_enemy = &fShangping;
+// 		sprintf(temp, "阿青：商大坏人，陪姑娘练练手罢！@商平：练就练，谁怕谁？哪一天你栽到我手上，让你好看！@阿青：哈哈，开始吧！@你与%s发生战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else if(current_npc_id == 4)
+// 	{
+// 		current_enemy = &fYehaizi;
+// 		sprintf(temp, "阿青：恩，请多指教！你与%s发生战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else if(current_npc_id == 114)
+// 	{
+// 		current_enemy = &fShiwei;
+// 		sprintf(temp, "阿青：当然，别以为你长得帅我就不打你！@你与%s发生战斗！", current_enemy->Name);
+// 		common_diag.set_text(temp);
+// 		common_diag.show(screen);
+// 		//FlipPage();
+// 		Flag = FIGHT_START_;
+// 	}
+// 	else
+// 	{
+// 		Flag = MAIN_MOVE_;
+// 	}
+// }
 
 void SelectNo()
 {
@@ -2437,6 +2560,14 @@ void InitData()
 	ask_where_fanli = 0;		//11
 	really_defeat_jianke = 0;	//12 是否真正打败神秘剑客
 	defeat_shiwei = 0;			//13 打败范蠡侍卫
+
+    g_script = new CScript("scripts/script", '@');
+    if (!g_script){
+        cout << "Load script failed! exit!" << endl;
+        exit(1);
+    }
+
+    ClearVariable();
 
 }
 
