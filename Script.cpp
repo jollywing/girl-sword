@@ -15,8 +15,9 @@ CScript * g_script;
 
 void RunScripts(const char * szName )
 {
-	oldFlag = Flag;
-	Flag = RUN_SCRIPT_;
+    stateStack.push(RUN_SCRIPT_);
+	// oldFlag = Flag;
+	// Flag = RUN_SCRIPT_;
 
 	if(g_script->FindScripts(szName))
 	{
@@ -197,7 +198,8 @@ void CScript::ExecuteScriptLine()
 	if ( ! strcmp( szCommand, "RETURN") )
 	{
 		//Flag = MAIN_MOVE_;
-        Flag = oldFlag;
+        // Flag = oldFlag;
+        stateStack.pop();
 		return;
 	}
 
@@ -258,10 +260,10 @@ void CScript::ExecuteScriptLine()
 	else if(! strcmp(szCommand, "DRAWPIC"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
-		short width = atoi(szNumberBuffer);
-		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
-		short height = atoi(szNumberBuffer);
+		// ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+		// short width = atoi(szNumberBuffer);
+		// ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+		// short height = atoi(szNumberBuffer);
 		DrawPic(szStringBuffer/*, width, height*/);
 		//FlipPage();
 	}
@@ -299,8 +301,9 @@ void CScript::ExecuteScriptLine()
 		common_diag.set_text(szStringBuffer);
 		common_diag.show(screen);
 		// FlipPage();
-		oldFlag = Flag;
-		Flag = GAME_MESSAGE_;		
+		// oldFlag = Flag;
+		// Flag = GAME_MESSAGE_;		
+        stateStack.push(GAME_MESSAGE_);
 	}
 
 	//格式：	FIGHT name
@@ -310,11 +313,13 @@ void CScript::ExecuteScriptLine()
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		current_enemy = GetFighterAddr(szStringBuffer);
 		sprintf(temp, "你与%s开始战斗！", current_enemy->Name );
+        stateStack.push(FIGHT_START_);
+        stateStack.push(GAME_MESSAGE_);
 		common_diag.set_text(temp);
 		common_diag.show(screen);
 		// FlipPage();
-		oldFlag = Flag;	//保存执行脚本的状态
-		Flag = FIGHT_START_;		
+		// oldFlag = Flag;	//保存执行脚本的状态
+		// Flag = FIGHT_START_;		
 	}
 
 	//格式：	REMOVENPC name
@@ -356,7 +361,7 @@ void CScript::ExecuteScriptLine()
 		r = GetRoleAddr(szStringBuffer);		
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		r->Step = atoi(szNumberBuffer);
-		RefreshCanvas();
+		// RefreshCanvas();
 		// FlipPage();
 	}
 
@@ -370,7 +375,7 @@ void CScript::ExecuteScriptLine()
 		r->X = atoi(szNumberBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		r->Y = atoi(szNumberBuffer);
-		RefreshCanvas();
+		// RefreshCanvas();
 		// FlipPage();
 	}
 
@@ -383,8 +388,9 @@ void CScript::ExecuteScriptLine()
 		npc_dest_x = atoi(szNumberBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		npc_dest_y = atoi(szNumberBuffer);
-		oldFlag = Flag;
-		Flag = NPC_MOVE_;
+        stateStack.push(NPC_MOVE_);
+		// oldFlag = Flag;
+		// Flag = NPC_MOVE_;
 	}
 
 	//格式：	ADDHP name value
@@ -424,7 +430,6 @@ void CScript::ExecuteScriptLine()
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		Fighter *f = GetFighterAddr( szStringBuffer);
-        cout << f->Name << endl;
 		f->cHP = f->HP;
 	}
 
@@ -434,9 +439,10 @@ void CScript::ExecuteScriptLine()
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		common_diag.set_text(szStringBuffer);
 		common_diag.show(screen);
+        stateStack.push(BEFORE_SELECT_);
 		// FlipPage();
-		oldFlag = Flag;
-		Flag = BEFORE_SELECT_;
+		// oldFlag = Flag;
+		// Flag = BEFORE_SELECT_;
 	}
 
 	++ nCurrentLine;

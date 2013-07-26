@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
+#include <stack>
 #include "Girl.h"
 #include "SdlSys.h"
 #include "Script.h"
@@ -23,7 +24,7 @@ long old_time, new_time; //用于计算帧时间的变量
 short frame_fight;	//战斗时的帧计数
 int fight_frame_num;	//战斗的总帧数
 short round_num;	//回合数
-short Flag, oldFlag;//游戏运行状态标志
+// short Flag, oldFlag;//游戏运行状态标志
 
 //剧情标志变量
 short asked_by_fanli;	//1 被范蠡邀请的标志
@@ -46,7 +47,7 @@ short defeat_shiwei;		//13 打败范蠡侍卫
 // RECT OldWindow;	//用于处理窗口移动事件，记录移动前窗口位置
 
 short game_running;
-
+stack<int> stateStack;
 
 
 //****************************应用程序函数******************************* 
@@ -76,7 +77,7 @@ int main(int argc, char ** argv)
     InitAudio();
 
 	//bActive = TRUE;
-	Flag = GAME_LOAD_;	//设置游戏进度 
+	// Flag = GAME_LOAD_;	//设置游戏进度 
 	InitGame();	//游戏初始化
 
     while(game_running){
@@ -120,7 +121,7 @@ void MainLoop()
 	
 //	old_time = new_time;
 	
-	switch(Flag)
+	switch(stateStack.top())
 	{
 	case GAME_TITLE_:	//1
 		GameTitle();
@@ -190,7 +191,8 @@ void MainLoop()
 void MoveNpc()
 {
 	if (current_npc->move_to(npc_dest_x, npc_dest_y))
-		Flag = oldFlag;
+        stateStack.pop();
+    // Flag = oldFlag;
 	else
 		RefreshCanvas();
 }
@@ -206,7 +208,9 @@ void InitGame()
     game_running = 1;
 	InitData();	//初始化游戏数据
 
-	Flag = GAME_TITLE_;		//推进游戏进度
+    stateStack.push(MAIN_MOVE_);
+    stateStack.push(GAME_TITLE_);
+	// Flag = GAME_TITLE_;		//推进游戏进度
     RunScripts("初始化");
 }
 
@@ -219,16 +223,18 @@ void MainMove()
     Uint8 *keys = SDL_GetKeyState(NULL);
 
     if (keys[SDLK_ESCAPE]) {
-      WaitKeyRelease();
+        WaitKeyRelease();
 		DrawSystemMenu();
-		Flag = SYSTEM_MENU_;
+        stateStack.push(SYSTEM_MENU_);
+		// Flag = SYSTEM_MENU_;
 		return;
 	}
 
     if (keys[SDLK_SPACE]) {
 		current_npc_id = FindNpc();
 		if(current_npc_id) {
-			Flag = TREAT_NPC_;
+            stateStack.push(TREAT_NPC_);
+			// Flag = TREAT_NPC_;
 		}
 		else {
 			TrapNum = current_map->check_trap(Aqing.X, Aqing.Y);
@@ -308,7 +314,8 @@ void MainMove()
 	}
 	else if (TrapNum >=200 && TrapNum <400)
 	{
-		Flag = AUTO_PLAY_;
+        stateStack.push(AUTO_PLAY_);
+		// Flag = AUTO_PLAY_;
 	}
 }
 
@@ -325,7 +332,9 @@ void StartFight()
 			frame_fight =0;
 			fight_frame_num = 0;
 			round_num = 1;
-			Flag = FIGHTING_;
+            stateStack.pop();
+            stateStack.push(FIGHTING_);
+			// Flag = FIGHTING_;
 		}
 		else {			
 			common_diag.show(screen);
@@ -352,7 +361,9 @@ void Fighting()
 	{
 		common_diag.set_text("神秘剑客：停！@神秘剑客：已经十个回合了！恭喜你！你赢了！@阿青：外面那个女孩一直说你帅，我觉得今天你才真的帅！");
 		common_diag.show(screen);
-		Flag = FIGHT_END_;
+        stateStack.pop();
+        stateStack.push(FIGHT_END_);
+		// Flag = FIGHT_END_;
 		return;
 	}
 	
@@ -377,7 +388,9 @@ void Fighting()
 				}
 				common_diag.set_text(temp);
 				common_diag.show(screen);
-				Flag = FIGHT_END_;
+                stateStack.pop();
+                stateStack.push(FIGHT_END_);
+				// Flag = FIGHT_END_;
 			}
 		}
 		else {
@@ -388,7 +401,9 @@ void Fighting()
 				common_diag.set_text(temp);
 				common_diag.show(screen);
 				////FlipPage();
-				Flag = FIGHT_END_;
+                stateStack.pop();
+                stateStack.push(FIGHT_END_);
+				// Flag = FIGHT_END_;
 			}
 		}
 		frame_fight =0;
@@ -440,7 +455,9 @@ void FightEnd()
 					}
 					common_diag.show(screen);
 					//FlipPage();
-					Flag = GAME_MESSAGE_;
+                    stateStack.pop();
+                    stateStack.push(GAME_MESSAGE_);
+					// Flag = GAME_MESSAGE_;
 					return;
 				}
 				if (current_enemy == &fFeitu )	//如果输给匪徒
@@ -451,7 +468,9 @@ void FightEnd()
 					//FlipPage();
 					GotoMap(&Map_aqing);
 					Aqing.set_location(2,0,SCR_W-90,80);
-					Flag =GAME_MESSAGE_;
+                    stateStack.pop();
+                    stateStack.push(GAME_MESSAGE_);
+					// Flag =GAME_MESSAGE_;
 					return;
 				}
 				if(current_enemy == &fShangping)	//如果输给商平
@@ -462,7 +481,9 @@ void FightEnd()
 					//FlipPage();
 					GotoMap(&Map_aqing);
 					Aqing.set_location(2,0,SCR_W-90,80);
-					Flag =GAME_MESSAGE_;
+                    stateStack.pop();
+                    stateStack.push(GAME_MESSAGE_);
+					// Flag =GAME_MESSAGE_;
 					return;
 				}
 				if(current_enemy == &fYehaizi)
@@ -473,7 +494,9 @@ void FightEnd()
 					//FlipPage();
 					GotoMap(&Map_aqing);
 					Aqing.set_location(2,0,SCR_W-90,80);
-					Flag =GAME_MESSAGE_;
+                    stateStack.pop();
+                    stateStack.push(GAME_MESSAGE_);
+					// Flag =GAME_MESSAGE_;
 					return;
 				}
 				GotoMap(&Map_aqing);
@@ -481,8 +504,10 @@ void FightEnd()
 				RefreshCanvas();
 				common_diag.set_text("阿青：觉得好虚弱，在床上休息一下吧。");
 				common_diag.show(screen);
+                stateStack.pop();
+                stateStack.push(GAME_MESSAGE_);
 				//FlipPage();
-				Flag = GAME_MESSAGE_;
+				// Flag = GAME_MESSAGE_;
 			}
 			else
 			{
@@ -494,7 +519,9 @@ void FightEnd()
 					common_diag.set_text(temp);
 					common_diag.show(screen);
 					//FlipPage();
-					Flag = FIGHT_START_;
+                    stateStack.pop();
+                    stateStack.push(FIGHT_START_);
+					// Flag = FIGHT_START_;
 				}
 				else	//战斗结束并且胜利
 				{
@@ -506,7 +533,9 @@ void FightEnd()
 						Aqing.set_location(1, 0, 180, 220);
 						RefreshCanvas();
 						TrapNum = 210;
-						Flag = AUTO_PLAY_; 
+                        stateStack.pop();
+                        stateStack.push(AUTO_PLAY_);
+						// Flag = AUTO_PLAY_; 
 					}
 					else if(current_enemy == &fFeitu)	//如果战胜了匪徒
 					{
@@ -517,7 +546,9 @@ void FightEnd()
 						{
 							defeat_feitu = 1;
 						}
-						Flag = GAME_MESSAGE_;
+                        stateStack.pop();
+                        stateStack.push(GAME_MESSAGE_);
+						// Flag = GAME_MESSAGE_;
 					}
 					else if(current_enemy == &fShangping)
 					{
@@ -528,7 +559,9 @@ void FightEnd()
 						{
 							defeat_shangping = 1;
 						}
-						Flag = GAME_MESSAGE_;
+                        stateStack.pop();
+                        stateStack.push(GAME_MESSAGE_);
+						// Flag = GAME_MESSAGE_;
 					}
 					else if(current_enemy == &fYehaizi)
 					{
@@ -539,12 +572,15 @@ void FightEnd()
 							common_diag.show(screen);
 							//FlipPage();
 							Yehaizi.set_location(1,3, 350,150);
-							Flag = GAME_MESSAGE_;
+		                    stateStack.pop();
+                            stateStack.push(GAME_MESSAGE_);
+                            // Flag = GAME_MESSAGE_;
 						}
 						else
 						{
 							RefreshCanvas();
-							Flag = MAIN_MOVE_;
+                            stateStack.pop();
+							// Flag = MAIN_MOVE_;
 						}
 					}
 					else if(current_enemy == &fJianke)
@@ -554,7 +590,9 @@ void FightEnd()
 							defeat_jianke = 1;
 							RefreshCanvas();
 							TrapNum = 220;
-							Flag = AUTO_PLAY_;
+                            stateStack.pop();
+                            stateStack.push(AUTO_PLAY_);
+							// Flag = AUTO_PLAY_;
 						}
 						else if(! really_defeat_jianke)
 						{
@@ -563,13 +601,16 @@ void FightEnd()
 							Jianke.Y -= 20;
 							common_diag.set_text("神秘剑客：真为你感到高兴！你可以拿走宝箱中的剑了，真的很适合你的。");
 							common_diag.show(screen);
+                            stateStack.pop();
+                            stateStack.push(GAME_MESSAGE_);
 							//FlipPage();
-							Flag = GAME_MESSAGE_;
+							// Flag = GAME_MESSAGE_;
 						}
 						else
 						{
 							RefreshCanvas();
-							Flag = MAIN_MOVE_;
+                            stateStack.pop();
+							// Flag = MAIN_MOVE_;
 						}
 					}
 					else if(current_enemy == &fShiwei)
@@ -581,18 +622,22 @@ void FightEnd()
 							common_diag.set_text("吴吉庆：想不到我一生纵横，今天栽在一个小姑娘手里，你可以过去了！");
 							common_diag.show(screen);
 							//FlipPage();
-							Flag = GAME_MESSAGE_;
+                            stateStack.pop();
+                            stateStack.push(GAME_MESSAGE_);
+							// Flag = GAME_MESSAGE_;
 						}
 						else
 						{
 							RefreshCanvas();
-							Flag = MAIN_MOVE_;
+                            stateStack.pop();
+							// Flag = MAIN_MOVE_;
 						}
 					}
 					else
 					{
 						RefreshCanvas();
-						Flag = MAIN_MOVE_;
+                        stateStack.pop();
+						// Flag = MAIN_MOVE_;
 					}	
 					
 				}
@@ -625,14 +670,18 @@ void GameMessage()
 				Fanli.Dir = 1;
 				RefreshCanvas();
 				TrapNum = 211;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+				// Flag = AUTO_PLAY_;
 				return;
 			}
 			if(TrapNum == 220)
 			{
 				DrawPic("./pic/landscape.bmp");
 				TrapNum = 221;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+				// Flag = AUTO_PLAY_;
 				return;
 			}
 			if(TrapNum == 221)
@@ -640,7 +689,9 @@ void GameMessage()
 				ClrScr();
 				//FlipPage();
 				TrapNum = 222;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+                // Flag = AUTO_PLAY_;
 				return;
 			}
 
@@ -648,14 +699,18 @@ void GameMessage()
 			{
 				RefreshCanvas();
 				TrapNum = 301;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+                // Flag = AUTO_PLAY_;
 				return;
 			}
 			if(TrapNum == 301) //如果是范蠡出现的剧情
 			{
 				RefreshCanvas();
 				TrapNum = 302;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+                // Flag = AUTO_PLAY_;
 				return;
 			}
 			if(TrapNum == 302)	//如果是西施出现的剧情
@@ -663,7 +718,9 @@ void GameMessage()
 				Aqing.Dir = 0;
 				RefreshCanvas();
 				TrapNum = 303;
-				Flag = AUTO_PLAY_;
+                stateStack.pop();
+                stateStack.push(AUTO_PLAY_);
+                // Flag = AUTO_PLAY_;
 				return;
 			}
 //			if(TrapNum == 303)	//如果是阿青离去的剧情
@@ -675,7 +732,8 @@ void GameMessage()
 //			}
 		
 			RefreshCanvas();
-			Flag = oldFlag;
+            stateStack.pop();
+			// Flag = oldFlag;
 		}
 		else
 		{			
@@ -701,7 +759,9 @@ void AutoPlay()
 		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于来到了吴国都城前。");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 201:	//从吴国到越国
 		Aqing.set_location(0,0, 200,100);
@@ -710,7 +770,9 @@ void AutoPlay()
 		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于回到了越国都城郊外。");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 202:	//第一次来到赵大爷身边
 		Aqing.Dir = 3;
@@ -720,7 +782,9 @@ void AutoPlay()
 		//FlipPage();
 		//去除陷阱
 		current_map->del_trap_by_num(202);
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 203:
 		Aqing.Dir = 1;
@@ -733,14 +797,16 @@ void AutoPlay()
 		common_diag.show(screen);
 		//FlipPage();
 		current_map->del_trap_by_num(203);
-		Flag = FIGHT_START_;
+        stateStack.pop();
+        stateStack.push(FIGHT_START_);
+		// Flag = FIGHT_START_;
 		break;
 	case 210:
 		result = Fanli.move_to(4,6);
 		if(result)
 		{
 			RefreshCanvas();
-			Flag = AUTO_PLAY_;
+			// Flag = AUTO_PLAY_;
 		}
 		else
 		{
@@ -749,7 +815,9 @@ void AutoPlay()
 			common_diag.show(screen);
 			//FlipPage();
 			asked_by_fanli = 1;
-			Flag = GAME_MESSAGE_;
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+			// Flag = GAME_MESSAGE_;
 		}
 		break;
 	case 211:
@@ -757,14 +825,15 @@ void AutoPlay()
 		if(result)
 		{
 			RefreshCanvas();
-			Flag = AUTO_PLAY_;
+			// Flag = AUTO_PLAY_;
 		}
 		else
 		{
 			Map_shaoxing.del_npc(&Fanli );
 			RefreshCanvas();
 			Fanli.set_location(2,0,80,95);
-			Flag = MAIN_MOVE_;
+            stateStack.pop();
+			// Flag = MAIN_MOVE_;
 		}
 		break;
 
@@ -778,7 +847,9 @@ void AutoPlay()
 		common_diag.set_text(temp);
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = FIGHT_START_;
+        stateStack.pop();
+        stateStack.push(FIGHT_START_);
+		// Flag = FIGHT_START_;
 		break;
 
 	case 206:	//第一次见张平的剧情
@@ -788,7 +859,9 @@ void AutoPlay()
 		common_diag.set_text(temp);
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = FIGHT_START_;
+        stateStack.pop();
+        stateStack.push(FIGHT_START_);
+		// Flag = FIGHT_START_;
 		break;
 	case 207:	
 		WuWeibing1.X += 30;
@@ -800,7 +873,9 @@ void AutoPlay()
 		//FlipPage();
 		WuWeibing1.X -=30;
 		WuWeibing2.X += 30;
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 
 	case 220:
@@ -817,19 +892,25 @@ void AutoPlay()
 		GotoMap( &Map_aqing);
 		fAqing.cHP = fAqing.HP;
 		Aqing.set_location(0,0,240,190);
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 221:
 		common_diag.set_text("在这一年时间里，范蠡也信守诺言，每天都有一些时间和阿青在一起。@阿青觉得虽然这个老头打架不是自己的对手，但他睿智的谈吐总让自己莫名地愉快。@阿青已经不再揪范蠡的胡子玩，但她越来越喜欢和范蠡在一起，听他讲道理，陪他看草原上的日落。");
 		common_diag.show(screen );
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 222:
 		common_diag.set_text("但是越国攻占姑苏后，已经有几天找不到范蠡了……");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 
 	case 209:
@@ -837,7 +918,9 @@ void AutoPlay()
 		common_diag.show(screen);
 		//FlipPage();
 		current_enemy = &fShiwei;
-		Flag = FIGHT_START_;
+        stateStack.pop();
+        stateStack.push(FIGHT_START_);
+		// Flag = FIGHT_START_;
 		break;
 
 	case 300:	//阿青来到吴王宫
@@ -846,14 +929,17 @@ void AutoPlay()
 		common_diag.show(screen);
 		//FlipPage();
 		Map_Gongdian.add_npc(&Fanli, 50, 220);
-		Flag = GAME_MESSAGE_;
+        stateStack.pop();
+        stateStack.push(GAME_MESSAGE_);
+
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 301:	//范蠡出现
 		result = Fanli.move_to(7,6);
 		if(result)
 		{
 			RefreshCanvas();
-			Flag = AUTO_PLAY_;
+			// Flag = AUTO_PLAY_;
 		}
 		else
 		{
@@ -863,7 +949,9 @@ void AutoPlay()
 			common_diag.show(screen);
 			//FlipPage();
 			Map_Gongdian.add_npc(&Xishi, 50,220);
-			Flag = GAME_MESSAGE_;
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+			// Flag = GAME_MESSAGE_;
 		}
 		break;
 
@@ -872,7 +960,7 @@ void AutoPlay()
 		if(result)
 		{
 			RefreshCanvas();
-			Flag = AUTO_PLAY_;
+			// Flag = AUTO_PLAY_;
 		}
 		else
 		{
@@ -881,7 +969,9 @@ void AutoPlay()
 			common_diag.set_text("阿青：喂，你是谁呀？和老头这么亲密？！@西施：我是夷光。@范蠡：……@阿青：我明白老头你为什么不回去了。……@西施：……@范蠡：……@阿青：她太美了，真的太美了……");
 			common_diag.show(screen);
 			//FlipPage();
-			Flag = GAME_MESSAGE_;
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+			// Flag = GAME_MESSAGE_;
 		}
 		break;
 
@@ -890,20 +980,24 @@ void AutoPlay()
 		if(result)
 		{
 			RefreshCanvas();
-			Flag = AUTO_PLAY_;
+			// Flag = AUTO_PLAY_;
 		}
 		else
 		{
 			common_diag.set_text("阿青离去了，没有人知道她去了哪里。@她终于生平第一次体验到了伤心的滋味。@让我们一起来鄙视范蠡这个欺骗少女之心的老头吧！@亲爱的朋友们，游戏到此就告一段落了。如果你还没过瘾，继续在各个场景中转一下吧。@让我们一起为Linux 游戏做些贡献吧，这对Linux 的进一步普及很重要。");
 			common_diag.show(screen);
 			//FlipPage();
-			Flag = GAME_MESSAGE_;
+			// Flag = GAME_MESSAGE_;
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+
 		}
 		break;
 		
 		
 	default:
-		Flag = MAIN_MOVE_;
+        stateStack.pop();
+		// Flag = MAIN_MOVE_;
 		
 	}
 
@@ -1278,6 +1372,8 @@ void AutoPlay()
 
 void TreatNpc()
 {
+    stateStack.pop();
+
 	switch(current_npc_id)
 	{
 	case 2://范蠡
@@ -1361,8 +1457,6 @@ void TreatNpc()
 		RunScripts("剑客的宝箱");
 		break;
 		
-	default:
-		Flag = MAIN_MOVE_;
 	}
 }
 
@@ -1376,8 +1470,9 @@ void GameTitle()
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
 	{
 		//PressKey(VK_ESCAPE);
-      WaitKeyRelease();
-		Flag = GAME_EXIT_;
+        WaitKeyRelease();
+        stateStack.push(GAME_EXIT_);
+        // Flag = GAME_EXIT_;
 		return;
 	}
 
@@ -1386,27 +1481,32 @@ void GameTitle()
 	{
 		//PressKey(VK_SPACE);
 		//play_sound("voc\\PushButton.wav");
-      PlayWavSound(SELECT);
+        PlayWavSound(SELECT);
 		if (StartMenu[0].Sel )
 		{
 			RefreshCanvas();
-			Flag = MAIN_MOVE_;	 
+            stateStack.pop();
+			// Flag = MAIN_MOVE_;	 
 		}
 		else if (StartMenu[1].Sel)
 		{
 			DrawRecord();
+            stateStack.pop();
+            stateStack.push(READ_RECORD_);
 			//FlipPage();
-			Flag = READ_RECORD_;
+			//Flag = READ_RECORD_;
 		}
 		else if (StartMenu[2].Sel)
 		{
 			ShowAbout();
+            stateStack.push(CHECK_ABOUT_);
 			//FlipPage();
-			Flag = CHECK_ABOUT_;
+			//Flag = CHECK_ABOUT_;
 		}
 		else
 		{
-			Flag = GAME_EXIT_;
+            stateStack.push(GAME_EXIT_);
+			// Flag = GAME_EXIT_;
 		}
 		return;
 	}
@@ -1465,10 +1565,11 @@ void GameExit()
         g_script = NULL;
     }
 
-    static short counter = 6;
-    if(counter == 0)
-        game_running = 0;
-    counter --;
+    SDL_Delay(2000);
+    // static short counter = 6;
+    // if(counter == 0)
+    game_running = 0;
+    //counter --;
 }
 
 //游戏过程中调出系统菜单
@@ -1479,9 +1580,10 @@ void System_Menu()
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
 	{
 		//PressKey(VK_ESCAPE);
-      WaitKeyRelease();
+        WaitKeyRelease();
 		RefreshCanvas();
-		Flag = MAIN_MOVE_;
+        stateStack.pop();
+		// Flag = MAIN_MOVE_;
 		return;
 	}
 
@@ -1489,30 +1591,34 @@ void System_Menu()
 	{
 		//PressKey(VK_SPACE);
 		//play_sound("voc\\PushButton.wav");
-      PlayWavSound(SELECT);
+        PlayWavSound(SELECT);
 		if(SystemMenu[0].Sel )
 		{
 			DrawStateDetail();
-			//FlipPage();
-			Flag = CHECK_STATE_;
+            stateStack.push(CHECK_STATE_);
+			// FlipPage();
+			// Flag = CHECK_STATE_;
 		}
 		else if(SystemMenu[1].Sel )
 		{
 			DrawRecord();
 			//FlipPage();
-			Flag = WRITE_RECORD_;
+            stateStack.push(WRITE_RECORD_);
+			// Flag = WRITE_RECORD_;
 		}
 		
 		else if(SystemMenu[2].Sel )
 		{
 			DrawRecord();
-			//FlipPage();
-			Flag = READ_RECORD_;			
+			// FlipPage();
+			// Flag = READ_RECORD_;			
+            stateStack.push(READ_RECORD_);
 		}
 		
 		else if(SystemMenu[3].Sel )
 		{
-			Flag = GAME_EXIT_;
+            stateStack.push(GAME_EXIT_);
+			// Flag = GAME_EXIT_;
 		}
 		return;
 	}
@@ -1547,7 +1653,7 @@ void System_Menu()
 		//PressKey(VK_UP);
       WaitKeyRelease();
 		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
+        PlayWavSound(CHANGE_SEL);
 		SystemMenu[selected].Sel = 0;
 		selected--;
 		if (selected < 0)
@@ -1567,11 +1673,12 @@ void Load()
 	if(keys[SDLK_ESCAPE])
 	{
 		//PressKey(VK_ESCAPE);
-      WaitKeyRelease();
+        WaitKeyRelease();
 		RefreshCanvas();
 		DrawSystemMenu();
 		//FlipPage();
-		Flag = SYSTEM_MENU_;
+        stateStack.pop();
+		// Flag = SYSTEM_MENU_;
 		return;
 	}
 
@@ -1590,21 +1697,26 @@ void Load()
 	{
 		//PressKey(VK_SPACE);
 		//play_sound("voc\\PushButton.wav");
-      PlayWavSound(SELECT);
+        PlayWavSound(SELECT);
         SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
 		
 		if(LoadData(GameRecord[selected].Location ))
 		{
-			RefreshCanvas();
-			DrawSystemMenu();
-			Flag = SYSTEM_MENU_;
+            common_diag.set_text("读取进度失败，或是记录不存在，或是旧版本的记录！");
+            common_diag.show(screen);
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+			// RefreshCanvas();
+			// DrawSystemMenu();
+            // stateStack.pop();
+			// Flag = SYSTEM_MENU_;
 		}
 		else
 		{
 			GetMapbyID(Aqing.MapID);
 			RelayoutNpc();
 			RefreshCanvas();
-			Flag = MAIN_MOVE_;
+			stateStack.pop();
 		}
 		return;
 	}
@@ -1649,10 +1761,11 @@ void Store()
 	if(keys[SDLK_ESCAPE])
 	{
 		//PressKey(VK_ESCAPE);
-      WaitKeyRelease();
+        WaitKeyRelease();
 		RefreshCanvas();
 		DrawSystemMenu();
-		Flag = SYSTEM_MENU_;
+        stateStack.pop();
+		// Flag = SYSTEM_MENU_;
 		return;
 	}
 
@@ -1671,21 +1784,26 @@ void Store()
 	{
 		//PressKey(VK_SPACE);
 		//play_sound("voc\\PushButton.wav");
-      PlayWavSound(SELECT);
+        PlayWavSound(SELECT);
         SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
 		
 		if(StoreData(GameRecord[selected].Location))
 		{
 			RefreshCanvas();
 			DrawSystemMenu();
-			Flag = SYSTEM_MENU_;
+            common_diag.set_text("存档失败，检查save目录是否存在！");
+            common_diag.show(screen);
+            stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
+			// Flag = SYSTEM_MENU_;
 		}
 		else
 		{
 			RefreshCanvas();
 			common_diag.set_text("存档成功！");
 			common_diag.show(screen);
-			Flag = GAME_MESSAGE_;
+	        stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
 		}
 		return;
 	}
@@ -1729,9 +1847,11 @@ void BeforeSelect()
 	{
 		if (common_diag.is_over())
 		{
+            stateStack.pop();
+            stateStack.push(WAIT_SELECT_);
 			DrawSelectMenu();
 			//FlipPage();
-			Flag = WAIT_SELECT_;
+			//Flag = WAIT_SELECT_;
 		}
 		else
 		{			
@@ -1761,7 +1881,8 @@ void WaitSelect()
             SetVariableValue("选择", 0);
 			//Flag = SELECT_NO_;
 		}
-        Flag = oldFlag;
+        stateStack.pop();
+        // Flag = oldFlag;
 		return;
 	}
 	
@@ -1784,7 +1905,7 @@ void WaitSelect()
 void SelectYes()
 {
     RunScripts("选择是");
-    Flag = oldFlag;
+    // Flag = oldFlag;
 }
 // void SelectYes()
 // {
@@ -1883,7 +2004,9 @@ void SelectNo()
 	}
 	common_diag.show(screen);
 	//FlipPage();
-	Flag = GAME_MESSAGE_;
+    stateStack.pop();
+    stateStack.push(GAME_MESSAGE_);
+	// Flag = GAME_MESSAGE_;
 }
 
 //查看详细状态信息
@@ -1897,7 +2020,8 @@ void CheckState()
 		RefreshCanvas();
 		DrawSystemMenu();
 		//FlipPage();
-		Flag = SYSTEM_MENU_;
+        stateStack.pop();
+		// Flag = SYSTEM_MENU_;
 	}
 }
 
@@ -1910,7 +2034,8 @@ void CheckAbout()
 		//PressKey(VK_SPACE);
 		DrawTitle();
 		//FlipPage();
-		Flag = GAME_TITLE_;
+        stateStack.pop();
+		// Flag = GAME_TITLE_;
 	}
 
 }
@@ -2375,26 +2500,29 @@ void QueryMessage(short n)
 		common_diag.set_text( "店主由于沉溺于编程，此店暂停营业，正在出租中！");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 101:
 		common_diag.set_text("这个屋子的主人搬走了，据说因为受了旁边店主的鼓动，隐居去编程了！");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 102:
 		common_diag.set_text("无赖掌柜：本店早就没货了，我懒得很，小妞，长得满标致的，做我老婆来拯救我吧！@阿青：你去死吧！");
 		common_diag.show(screen);
 		//FlipPage();
-		Flag = GAME_MESSAGE_;
+        stateStack.push(GAME_MESSAGE_);
+		// Flag = GAME_MESSAGE_;
 		break;
 	case 103:
 		play_sound("voc\\OpenBox.wav");
 		current_map = &Map_Xiangfang;
 		Aqing.MapID = Map_Xiangfang.ID;
 		Aqing.set_location(3,0,240,280);
-		Flag = MAIN_MOVE_;
+		// Flag = MAIN_MOVE_;
 		break;
 	}
 	

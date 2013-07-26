@@ -1,6 +1,7 @@
 #ifndef __GIRLH__
 #define __GIRLH__
 
+#include <stack>
 #include "SdlSys.h"
 #include "Role.h"
 #include "Map.h"
@@ -9,6 +10,7 @@
 #include "Fighter.h"
 #include "Menu.h"
 
+using namespace std;
 
 //游戏运行状态的宏定义
 #define GAME_LOAD_	0	//游戏数据装载
@@ -33,7 +35,8 @@
 #define RUN_SCRIPT_     19  //运行脚本
 #define NPC_MOVE_		20	//移动NPC
 
-extern short Flag, oldFlag;
+// extern short Flag, oldFlag;
+extern stack<int> stateStack;
 
 //**************************函数声明**********************************
 
