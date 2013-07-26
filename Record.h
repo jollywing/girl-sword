@@ -1,7 +1,7 @@
 #ifndef __RECORDH__
 #define __RECORDH__
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include "Role.h"
 
 class Record
@@ -31,5 +31,7 @@ public:
 	int store_game(Role& r);
 
 };
+
+extern Record GameRecord[3];	//纪录菜单
 
 #endif

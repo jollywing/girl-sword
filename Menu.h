@@ -1,8 +1,8 @@
 #ifndef __MENUH__
 #define __MENUH__
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 //*****************************菜单模块**********************************
 class Menu
 {
@@ -25,5 +25,9 @@ public:
 
 };
 
+//菜单对象
+extern Menu StartMenu[4];	//开始菜单
+extern Menu SystemMenu[4];	//系统菜单
+extern Menu SelectMenu[2];	//选择菜单
 
 #endif

@@ -41,4 +41,15 @@ public:
 
 };
 
+//战斗角色
+extern Fighter fAqing;		//1 战斗的阿青
+extern Fighter fWushi1;	//2
+extern Fighter fWushi2;	//3 战斗的两名吴国剑士
+extern Fighter fYehaizi;	//4 战斗的野孩子
+extern Fighter fJianke;	//5 战斗的神秘剑客
+extern Fighter fWushi;		//6 战斗的武师
+extern Fighter fFeitu;		//7 战斗的匪徒
+extern Fighter fShangping; //8 悍匪商平
+extern Fighter fShiwei;	//9 西施的侍卫
+
 #endif

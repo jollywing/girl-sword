@@ -1,10 +1,11 @@
 
-#include <SDL/SDL_ttf.h>
-#include "assist.h"
+#include "SdlSys.h"
 #include "Record.h"
 #include "Role.h"
 #include "Map.h"
-#include "stdio.h"
+#include <stdio.h>
+
+Record GameRecord[3];	//纪录菜单
 
 Record::~Record()
 {

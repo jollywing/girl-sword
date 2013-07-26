@@ -1,6 +1,17 @@
 #include <stdio.h>
 #include "Fighter.h"
-#include "assist.h"
+#include "SdlSys.h"
+
+//战斗角色
+Fighter fAqing;		//1 战斗的阿青
+Fighter fWushi1;	//2
+Fighter fWushi2;	//3 战斗的两名吴国剑士
+Fighter fYehaizi;	//4 战斗的野孩子
+Fighter fJianke;	//5 战斗的神秘剑客
+Fighter fWushi;		//6 战斗的武师
+Fighter fFeitu;		//7 战斗的匪徒
+Fighter fShangping; //8 悍匪商平
+Fighter fShiwei;	//9 西施的侍卫
 
 Fighter::Fighter()
 {

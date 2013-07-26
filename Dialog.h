@@ -1,8 +1,8 @@
 #ifndef DIALOG_H_
 #define DIALOG_H_
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 
 class Dialog
 {
@@ -32,5 +32,7 @@ public:
 	void set_dlg(SDL_Surface *surf, TTF_Font *font, SDL_Color *color);
 
 };
+
+extern Dialog common_diag;
 
 #endif

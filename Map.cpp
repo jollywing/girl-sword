@@ -1,7 +1,7 @@
 //#include "girl.h"
 //#include <ddraw.h>
 #include "Map.h"
-#include "assist.h"
+#include "SdlSys.h"
 
 //************************初始化地图数据****************************************
 	

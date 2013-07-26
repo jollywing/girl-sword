@@ -1,6 +1,34 @@
 #include "Role.h"
 //#include "girl.h"
 
+//角色
+Role Aqing;		//1 主角阿青
+Role QingBed;	//2 阿青的床
+Role AqingMa;	//3	阿青妈
+Role Sheep1;	//4
+Role Sheep2;	//5 两只绵羊
+Role ZhangDaye;	//6 爱唠叨的张大爷
+Role LiDashu;	//7	卖菜的李大叔
+Role CaiTan;	//8 李大叔的菜摊
+Role Wujianshi1;//9	
+Role Wujianshi2;//10 两名在绍兴城撒野的吴国剑士
+Role YueWeibing1;	//11
+Role YueWeibing2;	//12 城门的卫兵甲和卫兵乙
+Role Puren;		//13 仆人
+Role Fanli;		//14 范蠡
+Role box_fanli;	//15 范蠡家的宝箱
+Role WuWeibing1;//16 
+Role WuWeibing2;//17 吴国的卫兵甲和卫兵乙
+Role Xishi;		//18 美人西施
+Role Yehaizi;	//19 草原上的野孩子
+Role box_caoyuan;	//20 草原上宝箱
+Role Jianke;	//21 范府厢房中的神秘剑客
+Role box_jianke;	//22 剑客的宝箱
+Role Wushi;		//23 绍兴城中的武师
+Role Feitu;		//24 郊外的匪徒
+Role Shangping;	//25 悍匪商平
+Role Shiwei;	//26 西施的侍卫
+
 Role::Role()
 {
 	ID = 0;

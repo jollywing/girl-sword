@@ -1,5 +1,7 @@
 #include "Dialog.h"
-#include "assist.h"
+#include "SdlSys.h"
+
+Dialog common_diag;	//公用消息框
 
 Dialog::Dialog()
 {

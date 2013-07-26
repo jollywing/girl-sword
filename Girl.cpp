@@ -4,10 +4,56 @@
 #include <stdio.h>
 #include <string.h>
 #include "Girl.h"
-#include "assist.h"
 #include "SdlSys.h"
 
-//*********************************************************************
+
+// #define CK RGB(0,0,0)	//定义关键色
+#define speed 20	//定义角色移动速度
+#define FRAME_TIME 100	//定义一帧的毫秒数
+
+//游戏运行状态的宏定义
+#define GAME_LOAD_	0	//游戏数据装载
+#define GAME_TITLE_	1	//游戏开始画面
+#define MAIN_MOVE_	2	//由玩家控制主角
+#define READ_RECORD_	3	//读取纪录
+#define GAME_EXIT_	4	//正在退出游戏
+#define SYSTEM_MENU_	5	//游戏过程中调出系统菜单
+#define WRITE_RECORD_	6	//存写纪录
+#define GAME_MESSAGE_	7	//系统消息
+#define FIGHT_START_	8	//战斗开始
+#define FIGHTING_	9	//战斗进行
+#define FIGHT_END_	10	//战斗结束
+#define AUTO_PLAY_	11	//自动剧情
+#define TREAT_NPC_	12	//处理NPC事件
+#define BEFORE_SELECT_	13	//弹出等待玩家选择答案的页面
+#define WAIT_SELECT_	14	//等待玩家做出选择
+#define	SELECT_YES_		15	//玩家做出是的选择
+#define SELECT_NO_		16	//玩家做出否的选择
+#define CHECK_STATE_	17	//查看状态
+#define CHECK_ABOUT_	18	//查看作品信息
+
+//剧情标志变量
+short asked_by_fanli;	//1 被范蠡邀请的标志
+short asked_to_house;	//2 范蠡要去厢房找好玩的东西
+short see_jianke;		//3 是否见过神秘剑客
+short get_key;			//4 得到范蠡宝箱的钥匙
+short defeat_feitu;		//5 是否打败了匪徒
+short defeat_shangping;	//6 是否打败了商平
+short ask_to_caoyuan;	//7 神秘剑客叫你去草原
+short see_yehaizi;		//8 是否见过野孩子
+short defeat_yehaizi;    //9 是否已打败野孩子
+short defeat_jianke;	    //10 是否已抵挡神秘剑客１０个回合
+short ask_where_fanli;	//11 是否已经问过范蠡的动向
+short really_defeat_jianke;	//12 是否真正打败神秘剑客
+short defeat_shiwei;		//13 打败范蠡侍卫
+
+// short bActive;
+// int SCR_X;	//窗口在屏幕上的位置
+// int SCR_Y;
+// RECT OldWindow;	//用于处理窗口移动事件，记录移动前窗口位置
+
+short game_running;
+
 
 
 //****************************应用程序函数******************************* 
@@ -49,7 +95,7 @@ int main(int argc, char ** argv)
 
 		MainLoop();
         SDL_Flip(screen);
-        SDL_Delay(100);
+        SDL_Delay(FRAME_TIME);
     }
 
 
@@ -59,7 +105,6 @@ int main(int argc, char ** argv)
 
 }
 	
-
 /*
 	case WM_MOVE:	//窗口移动时更新SCR_X和SCR_Y的值
 		RECT r;
@@ -69,176 +114,6 @@ int main(int argc, char ** argv)
 		OldWindow = r;
 		break;
 */
-
-	
-
-//初始化directdraw函数
-void InitSDL( int win )
-{
-    Uint32 colorkey;
-
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("Unable to initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    atexit(SDL_Quit);
-
-    if (win == 0)
-        screen = SDL_SetVideoMode(480, 320, 16, SDL_DOUBLEBUF|SDL_FULLSCREEN);
-    else
-        screen = SDL_SetVideoMode(480, 320, 16, SDL_DOUBLEBUF);
-
-    if (screen == NULL) {
-        printf("Unable to set video mode: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    // How to set the icon
-    SDL_WM_SetCaption("越女剑Linux版", "sword");
-
-    SDL_ShowCursor(0); //hide mouse pointer
-
-    SDL_EnableKeyRepeat(0, 30); //disable key repeat
-
-
-	//3 创建菜单页面
-    CreateBmpSurface(&menu, "./pic/menu.bmp");
-
-    //create dialog background
-    CreateBmpSurface(&dlg, "./pic/dlg.bmp");
-    CreateBmpSurface(&info, "./pic/info.bmp");
-
-	//4 创建状态页面
-    CreateBmpSurface(&state, "./pic/state.bmp");
-    colorkey = SDL_MapRGB(state->format, 0, 0, 0);
-    SDL_SetColorKey(state, SDL_SRCCOLORKEY, colorkey);
-	
-	//5 创建精灵页面
-    CreateBmpSurface(&hero, "./pic/aqing.bmp");
-    colorkey = SDL_MapRGB(hero->format, 0, 0, 0);
-    SDL_SetColorKey(hero, SDL_SRCCOLORKEY, colorkey);
-
-	//6 范蠡
-    CreateBmpSurface(&FanLi, "./pic/fanli.bmp");
-    colorkey = SDL_MapRGB(FanLi->format, 0, 0, 0);
-    SDL_SetColorKey(FanLi, SDL_SRCCOLORKEY, colorkey);
-
-	//7 西施
-    CreateBmpSurface(&XiShi, "./pic/xishi.bmp");
-    colorkey = SDL_MapRGB(XiShi->format, 0, 0, 0);
-    SDL_SetColorKey(XiShi, SDL_SRCCOLORKEY, colorkey);
-
-	//8 创建绵羊页面
-    CreateBmpSurface(&sheep, "./pic/sheep.bmp");
-    colorkey = SDL_MapRGB(sheep->format, 0, 0, 0);
-    SDL_SetColorKey(sheep, SDL_SRCCOLORKEY, colorkey);
-
-	//9 创建越国杂项页面
-    CreateBmpSurface(&other_yue, "./pic/other.bmp");
-    colorkey = SDL_MapRGB(other_yue->format, 0, 0, 0);
-    SDL_SetColorKey(other_yue, SDL_SRCCOLORKEY, colorkey);
-
-	//10 创建物体页面
-    CreateBmpSurface(&item, "./pic/item.bmp");
-    colorkey = SDL_MapRGB(item->format, 0, 0, 0);
-    SDL_SetColorKey(item, SDL_SRCCOLORKEY, colorkey);
-
-	//11 创建战斗页面
-    CreateBmpSurface(&fight, "./pic/fight.bmp");
-    colorkey = SDL_MapRGB(fight->format, 0, 0, 0);
-    SDL_SetColorKey(fight, SDL_SRCCOLORKEY, colorkey);
-
-	//12 创建地图元素页面1
-    CreateBmpSurface(&map_tile1, "./pic/maptile.bmp");
-
-	//13 创建地图元素页面2
-    CreateBmpSurface(&map_tile2, "./pic/grass.bmp");
-
-	//14 创建地图元素页面2
-    CreateBmpSurface(&map_tile3, "./pic/palace.bmp");
-}
-
-
-//释放页面和directdraw对象
-void FreeSDL()
-{
-    SDL_FreeSurface(hero);
-    SDL_FreeSurface(XiShi);
-    SDL_FreeSurface(FanLi);
-    SDL_FreeSurface(sheep);
-    SDL_FreeSurface(other_yue);
-    SDL_FreeSurface(item);
-    SDL_FreeSurface(fight);
-    SDL_FreeSurface(menu);
-    SDL_FreeSurface(dlg);
-    SDL_FreeSurface(info);
-    SDL_FreeSurface(state);
-    SDL_FreeSurface(map_tile1);
-    SDL_FreeSurface(map_tile2);
-    SDL_FreeSurface(map_tile3);
-	
-}
-
-void OpenFonts()
-{
-    if (-1 == TTF_Init()){
-        printf("TTF engine init failed!\n");
-        exit(1);
-    }
-
-    menu_font = TTF_OpenFont("./font.ttf", 16);
-    if (!menu_font){
-        printf("Unable open font.ttf!\n");
-        exit(1);
-    }
-    menu_color.r = 220;
-    menu_color.g = 220;
-    menu_color.b = 255;
-
-    about_font = TTF_OpenFont("./font.ttf", 12);
-    if (!about_font){
-        printf("Unable open font.ttf!\n");
-        exit(1);
-    }
-    about_color.r = 0;
-    about_color.g = 255;
-    about_color.b = 255;
-
-    message_font = TTF_OpenFont("./font.ttf", 20);
-    if (!message_font){
-        printf("Unable open font.ttf!\n");
-        exit(1);
-    }
-    message_color.r = 255;
-    message_color.g = 0;
-    message_color.b = 0;
-
-    dlg_font = TTF_OpenFont("./font.ttf", 15);
-    if (!dlg_font){
-        printf("Unable open font.ttf!\n");
-        exit(1);
-    }
-    dlg_color.r = 10;
-    dlg_color.g = 50;
-    dlg_color.b = 5;
-}
-
-void CloseFonts()
-{
-    TTF_CloseFont(menu_font);
-    menu_font = NULL;
-    TTF_CloseFont(about_font);
-    about_font = NULL;
-    TTF_CloseFont(message_font);
-    message_font = NULL;
-    TTF_CloseFont(dlg_font);
-    dlg_font = NULL;
-
-    TTF_Quit();
-}
-//****************************************************************************
-
 
 //***********************和游戏状态绑定的函数******************************
 
@@ -2378,19 +2253,6 @@ void WaitKeyRelease()
   }
 }
 
-//播放声音
-void play_sound(const char * path)
-{
-  int i;
-  for (i = 0; i < SND_NUM; i++) {
-    if(!strcmp(path, wav_files[i]))
-      break;
-  }
-  PlayWavSound(i);
-	//PlaySound(NULL, rpg_app, SND_PURGE);
-	//PlaySound(path, rpg_app, SND_ASYNC|SND_NOWAIT);
-}
-
 //响应在行走过程中敲空格的事件
 void QueryMessage(short n)
 {
@@ -2447,12 +2309,10 @@ short CrushCheck()	//碰撞检测
 	{
 		if (abs(Aqing.X - temp->X )< 20 && abs(Aqing.Y - temp->Y )<20)
 		{
-			temp = NULL;
 			return 1;
 		}
 		temp = temp->R;
 	}
-	temp = NULL;
 	return 0;
 
 }

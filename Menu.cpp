@@ -1,6 +1,11 @@
 //#include "girl.h"
 #include "Menu.h"
-#include "assist.h"
+#include "SdlSys.h"
+
+//菜单对象
+Menu StartMenu[4];	//开始菜单
+Menu SystemMenu[4];	//系统菜单
+Menu SelectMenu[2];	//选择菜单
 
 //***********************************************************
 
