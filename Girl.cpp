@@ -11,26 +11,15 @@
 #define speed 20	//定义角色移动速度
 #define FRAME_TIME 100	//定义一帧的毫秒数
 
-//游戏运行状态的宏定义
-#define GAME_LOAD_	0	//游戏数据装载
-#define GAME_TITLE_	1	//游戏开始画面
-#define MAIN_MOVE_	2	//由玩家控制主角
-#define READ_RECORD_	3	//读取纪录
-#define GAME_EXIT_	4	//正在退出游戏
-#define SYSTEM_MENU_	5	//游戏过程中调出系统菜单
-#define WRITE_RECORD_	6	//存写纪录
-#define GAME_MESSAGE_	7	//系统消息
-#define FIGHT_START_	8	//战斗开始
-#define FIGHTING_	9	//战斗进行
-#define FIGHT_END_	10	//战斗结束
-#define AUTO_PLAY_	11	//自动剧情
-#define TREAT_NPC_	12	//处理NPC事件
-#define BEFORE_SELECT_	13	//弹出等待玩家选择答案的页面
-#define WAIT_SELECT_	14	//等待玩家做出选择
-#define	SELECT_YES_		15	//玩家做出是的选择
-#define SELECT_NO_		16	//玩家做出否的选择
-#define CHECK_STATE_	17	//查看状态
-#define CHECK_ABOUT_	18	//查看作品信息
+//全局游戏变量
+// int current_npc_id;	//当前的Npc的id
+Map * current_map;	//当前的地图指针
+short TrapNum; //玩家踩中的陷阱编号
+long old_time, new_time; //用于计算帧时间的变量
+short frame_fight;	//战斗时的帧计数
+int fight_frame_num;	//战斗的总帧数
+short round_num;	//回合数
+short Flag, oldFlag;//游戏运行状态标志
 
 //剧情标志变量
 short asked_by_fanli;	//1 被范蠡邀请的标志
@@ -1779,7 +1768,7 @@ void CheckState()
 {
     Uint8 *keys = SDL_GetKeyState(NULL);
 
-	if(keys[SDLK_SPACE])
+	if(keys[SDLK_SPACE] || keys[SDLK_ESCAPE])
 	{
 		//PressKey(VK_SPACE);
 		RefreshCanvas();
@@ -2401,56 +2390,10 @@ void InitData()
 		"save/2.sav",0,menu, menu_font, &menu_color);
 	GameRecord[2].set_record (160,270,90,25,"存档三",
 		"save/3.sav",0,menu, menu_font, &menu_color);
-
-	//初始化地图	
-	Map_aqing.init_map (10,"阿青家",Tile_aqing,Trap_aqing, Block_aqing,map_tile1, 4, message_font, &message_color);	//1
-	Map_shaoxing.init_map (11,"绍兴城",Tile_shaoxing,Trap_shaoxing, Block_shaoxing, map_tile1, 4, message_font, &message_color);	//2
-	Map_citydoor.init_map (12,"绍兴城门",Tile_citydoor,Trap_citydoor, Block_citydoor,map_tile1, 4, message_font, &message_color);	//3
-	Map_fanli.init_map (13,"范蠡府上",Tile_fanli,Trap_fanli, Block_fanli,map_tile1, 4, message_font, &message_color);	//4
-	Map_outside.init_map (14,"郊  外",Tile_outside,Trap_outside, Block_outside,map_tile1, 4, message_font, &message_color);	//5
-	Map_Wuguo.init_map(16, "吴国城门", Tile_wuguo,Trap_wuguo, Block_wuguo, map_tile1, 4, message_font, &message_color);	//6
-	Map_caoyuan.init_map(15, "放牧草原", Tile_caoyuan, Trap_caoyuan, Block_caoyuan, map_tile2, 15, message_font, &message_color);	//7
-	Map_Gongdian.init_map(17, "吴王宫", Tile_caoyuan, Trap_gongdian, Block_gongdian, map_tile3, 15, message_font, &message_color);	//8
-	Map_Xiangfang.init_map(18, "范蠡府东厢房", Tile_xiangfang, Trap_xiangfang,Block_xiangfang,map_tile1,4, message_font, &message_color);	//9
-
-	//初始化角色
-	Aqing.role_set (1,"阿青",90,55,250,150,0,0,hero,10, 0);	//1
-	QingBed.role_set(303, "阿青的小床", 35, 35, 430,80,4,0, item, 10, 0);	//2
-	AqingMa.role_set(10,"阿青的娘", 95,60, 100, 95, 0, 3, other_yue,10,0);	//3
-	Sheep1.role_set(200,"绵羊1", 48,48, 400,210, 3,0, sheep, 10,0);	//4
-	Sheep2.role_set(201,"绵羊2", 48,48, 380,220, 0,0, sheep, 10, 0);	//5
-	ZhangDaye.role_set(11,"张大爷", 95, 60, 400, 240, 0, 2, other_yue, 11, 0);//6
-	LiDashu.role_set(12,"李大叔", 95,60, 150,307, 1, 2, other_yue, 11, 0);	//7
-	Puren.role_set(15, "仆人晓月", 95,60, 400,130, 0,6, other_yue, 13, 0);	//8
-	CaiTan.role_set(300,"李大叔的菜摊", 95, 120, 100, 305, 1, 0, other_yue, 11, 0);	//9
-	Wujianshi1.role_set(110, "吴国剑士甲", 95,60, 150, 270, 1, 4, other_yue, 11, 110);	//10
-	Wujianshi2.role_set(111, "吴国剑士乙", 95,60, 100, 240, 1, 5,other_yue, 11, 111);	//11
-	YueWeibing1.role_set(13,"越国卫兵1", 95,60, 105,150, 0, 0, other_yue, 12, 0);	//12
-	YueWeibing2.role_set(14,"越国卫兵2", 95,60, 305,150, 0, 1, other_yue, 12, 0);	//13
-	WuWeibing1.role_set(101,"吴国卫兵1", 95, 60, 200, 240,0, 4, other_yue, 16, 0);	//14
-	WuWeibing2.role_set(102,"吴国卫兵2", 95,60, 310, 240, 0,5, other_yue, 16, 0);	//15
-	box_fanli.role_set(301,"范大夫的宝箱", 35,35, 150,200, 0,0, item, 13, 0);	//16
-	Fanli.role_set(2,"范蠡大夫", 80,40, 100, 100, 2,0, FanLi, 13, 0);	//17
-	Xishi.role_set(3,"西施", 85, 50, 220,220, 0,0, XiShi, 17, 0);	//18
-	Yehaizi.role_set(4,"草原上的野孩子",95,60, 380, 180, 1, 3, other_yue,15,4 );	//19
-	box_caoyuan.role_set(302,"草原上的宝箱", 35,35, 400, 160, 2,0, item, 15, 0);	//20
-	Jianke.role_set(5, "神秘剑客", 95,60, 120,150, 1,6,other_yue,18,5);	//21
-	box_jianke.role_set(304, "剑客的宝箱", 35,35,110,110, 1,0, item,18,0);	//22
-	Wushi.role_set(16, "武师", 95,60, 400,200, 2,0, other_yue, 12,16);	//23
-	Feitu.role_set(112, "匪徒", 95,60, 330,150, 2,2, other_yue, 14,112);	//24
-	Shangping.role_set(113, "悍匪商平", 95,60, 270,190, 2,1,other_yue, 15,113);	//25
-	Shiwei.role_set(114, "吴吉庆", 95,60, 225,225,2,3, other_yue,16, 114);	//26
-
-	//初始化战斗角色
-	fAqing.init_fighter(1, 0, "阿青",100, 20,15, 250,235, 60,85, 0,1, fight, "voc/Aqing.wav", message_font);	//1
-	fWushi1.init_fighter(110, 1, "吴国剑士甲", 90, 20,5, 120,220, 60,85, 1, 0,fight, "voc/Wujianshi.wav", message_font);	//2
-	fWushi2.init_fighter(111, 1, "吴国剑士乙", 100, 20,10, 120,240, 70,100, 1,0,fight, "voc/Wujianshi.wav", message_font);	//3
-	fYehaizi.init_fighter(4, 3, "草原上的野孩子", 465,125,100, 100,250,60,85,1,0,fight, "voc/Yehaizi.wav", message_font);	//4
-	fJianke.init_fighter(5, 4,"神秘剑客",1100, 160,150, 120,210, 60,85, 1,0,fight, "voc/Jianke.wav", message_font);	//5
-	fWushi.init_fighter(16, 5,"绍兴武师", 120, 30, 18, 140,230, 60,85, 1,0,fight, "voc/Wushi.wav", message_font);	//6
-	fFeitu.init_fighter(112,2, "口痴的匪徒", 200, 42,40, 140,140, 60,85, 1,0, fight, "voc/Feitu.wav", message_font);//7
-	fShangping.init_fighter(113, 2, "悍匪商平", 300, 75,50, 140, 220, 60,85, 1,0, fight, "voc/Feitu.wav", message_font);	//8
-	fShiwei.init_fighter(114, 6, "西施的侍卫吴吉庆", 1200, 225, 250, 140,255, 60,85, 1,0, fight, "voc/Jianke.wav", message_font);
+    
+    InitMaps();
+    InitRoles();
+    InitFighters();
 
 	//地图中加入Npc
 	Map_aqing.add_npc(&AqingMa, AqingMa.X, AqingMa.Y);	
@@ -2528,6 +2471,8 @@ short LoadData( char * path)
 	fread(&Jianke.Y, sizeof(int), 1, fp);
 	fread(&Yehaizi.X, sizeof(int), 1, fp);
 	fread(&Yehaizi.Y, sizeof(int), 1, fp);
+	fread(&Fanli.X, sizeof(int), 1, fp);
+	fread(&Fanli.Y, sizeof(int), 1, fp);
 	fread(&box_fanli.Step, sizeof(int), 1, fp);
 	fread(&box_jianke.Step, sizeof(int), 1, fp);
 	fread(&box_caoyuan.Step, sizeof(int), 1, fp);
@@ -2547,18 +2492,18 @@ short LoadData( char * path)
 	}
 
 	//读取地图NPC数据
-	for(i =0; i< 15; i++)
-	{
-		fread(&Map_aqing.Npcs[i], sizeof(int), 1, fp);		//1
-		fread(&Map_shaoxing.Npcs[i], sizeof(int), 1, fp);	//2
-		fread(&Map_citydoor.Npcs[i], sizeof(int), 1, fp);	//3
-		fread(&Map_fanli.Npcs[i], sizeof(int), 1, fp);		//4
-		fread(&Map_outside.Npcs[i], sizeof(int), 1, fp);	//5
-		fread(&Map_caoyuan.Npcs[i], sizeof(int), 1, fp);	//6
-		fread(&Map_Wuguo.Npcs[i], sizeof(int), 1, fp);		//7
-		fread(&Map_Gongdian.Npcs[i], sizeof(int), 1, fp);	//8
-		fread(&Map_Xiangfang.Npcs[i], sizeof(int), 1, fp);	//9
-	}
+	// for(i =0; i< 15; i++)
+	// {
+    fread(&Map_aqing.Npcs, sizeof(int), 15, fp);		//1
+    fread(&Map_shaoxing.Npcs, sizeof(int), 15, fp);	//2
+    fread(&Map_citydoor.Npcs, sizeof(int), 15, fp);	//3
+    fread(&Map_fanli.Npcs, sizeof(int), 15, fp);		//4
+    fread(&Map_outside.Npcs, sizeof(int), 15, fp);	//5
+    fread(&Map_caoyuan.Npcs, sizeof(int), 15, fp);	//6
+    fread(&Map_Wuguo.Npcs, sizeof(int), 15, fp);		//7
+    fread(&Map_Gongdian.Npcs, sizeof(int), 15, fp);	//8
+    fread(&Map_Xiangfang.Npcs, sizeof(int), 15, fp);	//9
+	// }
 
 	//读取剧情标志数据
 	fread(&asked_by_fanli, sizeof(short), 1, fp);	//1
@@ -2611,6 +2556,8 @@ short StoreData(char * path)
 	fwrite(&Jianke.Y, sizeof(int), 1, fp);
 	fwrite(&Yehaizi.X, sizeof(int), 1, fp);
 	fwrite(&Yehaizi.Y, sizeof(int), 1, fp);
+	fwrite(&Fanli.X, sizeof(int), 1, fp);
+	fwrite(&Fanli.Y, sizeof(int), 1, fp);
 	fwrite(&box_fanli.Step, sizeof(int), 1, fp);
 	fwrite(&box_jianke.Step, sizeof(int), 1, fp);
 	fwrite(&box_caoyuan.Step, sizeof(int), 1, fp);
@@ -2630,18 +2577,18 @@ short StoreData(char * path)
 	}
 
 	//存储地图NPC数据
-	for(i =0; i< 15; i++)
-	{
-		fwrite(&Map_aqing.Npcs[i], sizeof(int), 1, fp);		//1
-		fwrite(&Map_shaoxing.Npcs[i], sizeof(int), 1, fp);	//2
-		fwrite(&Map_citydoor.Npcs[i], sizeof(int), 1, fp);	//3
-		fwrite(&Map_fanli.Npcs[i], sizeof(int), 1, fp);		//4
-		fwrite(&Map_outside.Npcs[i], sizeof(int), 1, fp);	//5
-		fwrite(&Map_caoyuan.Npcs[i], sizeof(int), 1, fp);	//6
-		fwrite(&Map_Wuguo.Npcs[i], sizeof(int), 1, fp);		//7
-		fwrite(&Map_Gongdian.Npcs[i], sizeof(int), 1, fp);	//8
-		fwrite(&Map_Xiangfang.Npcs[i], sizeof(int), 1, fp);	//9
-	}
+	// for(i =0; i< 15; i++)
+	// {
+    fwrite(&Map_aqing.Npcs, sizeof(int), 15, fp);		//1
+    fwrite(&Map_shaoxing.Npcs, sizeof(int), 15, fp);	//2
+    fwrite(&Map_citydoor.Npcs, sizeof(int), 15, fp);	//3
+    fwrite(&Map_fanli.Npcs, sizeof(int), 15, fp);		//4
+    fwrite(&Map_outside.Npcs, sizeof(int), 15, fp);	//5
+    fwrite(&Map_caoyuan.Npcs, sizeof(int), 15, fp);	//6
+    fwrite(&Map_Wuguo.Npcs, sizeof(int), 15, fp);		//7
+    fwrite(&Map_Gongdian.Npcs, sizeof(int), 15, fp);	//8
+    fwrite(&Map_Xiangfang.Npcs, sizeof(int), 15, fp);	//9
+	// }
 
 	//存储剧情标志数据
 	fwrite(&asked_by_fanli, sizeof(short), 1, fp);	//1

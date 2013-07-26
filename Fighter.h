@@ -41,6 +41,10 @@ public:
 
 };
 
+#define FIGHTER_NUM 9
+
+extern Fighter * current_enemy;	//当前的敌人指针
+
 //战斗角色
 extern Fighter fAqing;		//1 战斗的阿青
 extern Fighter fWushi1;	//2
@@ -51,5 +55,19 @@ extern Fighter fWushi;		//6 战斗的武师
 extern Fighter fFeitu;		//7 战斗的匪徒
 extern Fighter fShangping; //8 悍匪商平
 extern Fighter fShiwei;	//9 西施的侍卫
+
+struct stFighterIndex
+{
+	char		szName[32];
+	Fighter		*pFighter;
+};
+
+extern stFighterIndex fighters[FIGHTER_NUM];
+
+void InitFighters();
+void ClearFighter();
+bool AddFighter( const char *, Fighter *);
+Fighter * GetFighterAddr( char *);
+
 
 #endif

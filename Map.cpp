@@ -339,6 +339,54 @@ Map Map_Gongdian;	//7
 Map Map_outside;	//8
 Map Map_Xiangfang;	//9
 
+void InitMaps()
+{
+	//初始化地图	
+	Map_aqing.init_map (10,"阿青家",Tile_aqing,Trap_aqing, Block_aqing,map_tile1, 4, message_font, &message_color);	//1
+	Map_shaoxing.init_map (11,"绍兴城",Tile_shaoxing,Trap_shaoxing, Block_shaoxing, map_tile1, 4, message_font, &message_color);	//2
+	Map_citydoor.init_map (12,"绍兴城门",Tile_citydoor,Trap_citydoor, Block_citydoor,map_tile1, 4, message_font, &message_color);	//3
+	Map_fanli.init_map (13,"范蠡府上",Tile_fanli,Trap_fanli, Block_fanli,map_tile1, 4, message_font, &message_color);	//4
+	Map_outside.init_map (14,"郊  外",Tile_outside,Trap_outside, Block_outside,map_tile1, 4, message_font, &message_color);	//5
+	Map_Wuguo.init_map(16, "吴国城门", Tile_wuguo,Trap_wuguo, Block_wuguo, map_tile1, 4, message_font, &message_color);	//6
+	Map_caoyuan.init_map(15, "放牧草原", Tile_caoyuan, Trap_caoyuan, Block_caoyuan, map_tile2, 15, message_font, &message_color);	//7
+	Map_Gongdian.init_map(17, "吴王宫", Tile_caoyuan, Trap_gongdian, Block_gongdian, map_tile3, 15, message_font, &message_color);	//8
+	Map_Xiangfang.init_map(18, "范蠡府东厢房", Tile_xiangfang, Trap_xiangfang,Block_xiangfang,map_tile1,4, message_font, &message_color);	//9
+}
+
+stMapIndex maps[MAP_NUM];
+
+void ClearMapIndex()
+{
+	for(int i=0; i< MAP_NUM; ++i)
+	{
+		strcpy(maps[i].szMapName, "");
+	}
+}
+
+bool AddMapIndex(char* szName, Map *addr)
+{
+	for(int i=0; i< MAP_NUM; ++i)
+	{
+		if( !strcmp(maps[i].szMapName, "") )
+		{
+			strcpy(maps[i].szMapName, szName);
+			maps[i].pMap = addr;
+			return true;
+		}
+	}
+	return false;
+}
+
+Map * GetMapAddr(char* szName)
+{
+	for(int i=0; i< MAP_NUM; ++i)
+	{
+		if( !strcmp(maps[i].szMapName, szName) )
+			return maps[i].pMap;
+	}
+	return NULL;
+}
+
 //--------------------------------------------------
 
 Map::Map()

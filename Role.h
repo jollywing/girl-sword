@@ -4,7 +4,7 @@
 #ifndef __ROLEH__
 #define __ROLEH__
 
-#include <SDL/SDL.h>
+#include "SdlSys.h"
 //#include "map.h"
 
 class Role
@@ -37,6 +37,8 @@ public:
 
 };
 
+#define ROLE_NUM 30
+
 //角色
 extern Role Aqing;		//1 主角阿青
 extern Role QingBed;	//2 阿青的床
@@ -65,5 +67,20 @@ extern Role Feitu;		//24 郊外的匪徒
 extern Role Shangping;	//25 悍匪商平
 extern Role Shiwei;	//26 西施的侍卫
 
+extern short current_npc_id;	//当前的Npc的id
+extern Role *current_npc;	//当前的NPC指针
+extern short npc_dest_x, npc_dest_y;	//npc的目的地
+
+struct stRoleIndex
+{
+	char szName[32];
+	Role *pRole;
+};
+
+extern stRoleIndex roles[ROLE_NUM];
+void InitRoles();
+void ClearRole();
+Role * GetRoleAddr(char *);
+bool AddRole( char *, Role *);
 
 #endif

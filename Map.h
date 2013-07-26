@@ -7,6 +7,7 @@
 
 #define SCR_W 480
 #define SCR_H 320
+#define MAP_NUM		9
 //BOOL flash;
 
 // Map 1
@@ -105,5 +106,23 @@ public:
 	short check_trap(int xCurrent,int yCurrent);
 	short npc_in_map(Role *);
 };
+
+//-------------地图表声明---------------------------
+struct stMapIndex
+{
+	char	szMapName[32];
+	Map		*pMap;
+};
+
+extern Map * current_map;	//当前的地图指针
+
+void InitMaps();
+
+//-------------------map index declare---------------
+extern stMapIndex maps[MAP_NUM];
+void ClearMapIndex();
+bool AddMapIndex( char* szName, Map *addr);
+Map * GetMapAddr( char* szName);
+
 
 #endif

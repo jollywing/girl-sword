@@ -1,6 +1,7 @@
 #ifndef __GIRLH__
 #define __GIRLH__
 
+#include "SdlSys.h"
 #include "Role.h"
 #include "Map.h"
 #include "Record.h"
@@ -9,22 +10,30 @@
 #include "Menu.h"
 
 
+//游戏运行状态的宏定义
+#define GAME_LOAD_	0	//游戏数据装载
+#define GAME_TITLE_	1	//游戏开始画面
+#define MAIN_MOVE_	2	//由玩家控制主角
+#define READ_RECORD_	3	//读取纪录
+#define GAME_EXIT_	4	//正在退出游戏
+#define SYSTEM_MENU_	5	//游戏过程中调出系统菜单
+#define WRITE_RECORD_	6	//存写纪录
+#define GAME_MESSAGE_	7	//系统消息
+#define FIGHT_START_	8	//战斗开始
+#define FIGHTING_	9	//战斗进行
+#define FIGHT_END_	10	//战斗结束
+#define AUTO_PLAY_	11	//自动剧情
+#define TREAT_NPC_	12	//处理NPC事件
+#define BEFORE_SELECT_	13	//弹出等待玩家选择答案的页面
+#define WAIT_SELECT_	14	//等待玩家做出选择
+#define	SELECT_YES_		15	//玩家做出是的选择
+#define SELECT_NO_		16	//玩家做出否的选择
+#define CHECK_STATE_	17	//查看状态
+#define CHECK_ABOUT_	18	//查看作品信息
+#define RUN_SCRIPT_     19  //运行脚本
+#define NPC_MOVE_		20	//移动NPC
 
-
-
-
-
-//全局游戏变量
-int current_npc_id;	//当前的Npc的id
-Map * current_map;	//当前的地图指针
-Fighter * current_enemy;	//当前的敌人指针
-short TrapNum; //玩家踩中的陷阱编号
-long old_time, new_time; //用于计算帧时间的变量
-short frame_fight;	//战斗时的帧计数
-int fight_frame_num;	//战斗的总帧数
-short round_num;	//回合数
-short Flag;//游戏运行状态标志
-
+extern short Flag, oldFlag;
 
 //**************************函数声明**********************************
 
@@ -63,7 +72,7 @@ void DrawRoundNum();	//9 画战斗回合数
 void ClrScr();			//10 清屏
 void DrawPic(const char *);	//11 在屏幕上显示图片
 void ShowAbout();		//12 显示作品的信息	
-void FlipPage();		//13 将离屏页面的内容传送到主页面
+// void FlipPage();		//13 将离屏页面的内容传送到主页面
 void DrawTitle();		//14 在离屏页面上画片头
 void DrawEnd();			//15 画片尾
 
