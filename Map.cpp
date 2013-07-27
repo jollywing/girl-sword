@@ -354,7 +354,7 @@ void InitMaps()
 	Map_fanli.init_map (13,"范蠡府上",Tile_fanli,Trap_fanli, Block_fanli,map_tile1, 4, message_font, &message_color);	//4
     AddMapIndex(Map_fanli.Name, &Map_fanli);
 
-	Map_outside.init_map (14,"郊  外",Tile_outside,Trap_outside, Block_outside,map_tile1, 4, message_font, &message_color);	//5
+	Map_outside.init_map (14,"郊外",Tile_outside,Trap_outside, Block_outside,map_tile1, 4, message_font, &message_color);	//5
     AddMapIndex(Map_outside.Name, &Map_outside);
 
 	Map_Wuguo.init_map(16, "吴国城门", Tile_wuguo,Trap_wuguo, Block_wuguo, map_tile1, 4, message_font, &message_color);	//6

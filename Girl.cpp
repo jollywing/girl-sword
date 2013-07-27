@@ -120,7 +120,10 @@ void MainLoop()
 //		return;
 	
 //	old_time = new_time;
-	
+
+    if (stateStack.empty())
+        stateStack.push(MAIN_MOVE_);
+
 	switch(stateStack.top())
 	{
 	case GAME_TITLE_:	//1
@@ -190,11 +193,11 @@ void MainLoop()
 // npc移动
 void MoveNpc()
 {
-	if (current_npc->move_to(npc_dest_x, npc_dest_y))
+	if (!current_npc->move_to(npc_dest_x, npc_dest_y))
         stateStack.pop();
     // Flag = oldFlag;
-	else
-		RefreshCanvas();
+	// else
+    RefreshCanvas();
 }
 
 //游戏初始化
@@ -322,24 +325,24 @@ void MainMove()
 //开始战斗函数
 void StartFight()
 {
-    Uint8 *keys = SDL_GetKeyState(NULL);
-	if(keys[SDLK_SPACE]||keys[SDLK_RETURN]) {
-		if (common_diag.is_over()) {
-			fAqing.Y = current_enemy->Y;
-			if(fAqing.bAttack == current_enemy->bAttack )
-				fAqing.bAttack = !current_enemy->bAttack;
+    // Uint8 *keys = SDL_GetKeyState(NULL);
+	// if(keys[SDLK_SPACE]||keys[SDLK_RETURN]) {
+	// 	if (common_diag.is_over()) {
+    fAqing.Y = current_enemy->Y;
+    if(fAqing.bAttack == current_enemy->bAttack )
+        fAqing.bAttack = !current_enemy->bAttack;
 
-			frame_fight =0;
-			fight_frame_num = 0;
-			round_num = 1;
-            stateStack.pop();
-            stateStack.push(FIGHTING_);
-			// Flag = FIGHTING_;
-		}
-		else {			
-			common_diag.show(screen);
-		}
-	}
+    frame_fight =0;
+    fight_frame_num = 0;
+    round_num = 0;
+    //         stateStack.pop();
+    //         stateStack.push(FIGHTING_);
+	// 		// Flag = FIGHTING_;
+	// 	}
+	// 	else {			
+	// 		common_diag.show(screen);
+	// 	}
+	// }
 }
 
 //战斗中
@@ -351,27 +354,28 @@ void Fighting()
 	frame_fight++;
 
 	//更新回合数
-	if(fight_frame_num%12 == 0)
+	if(fight_frame_num % 12 == 0)
 	{
-		round_num++;
+		round_num ++;
+        SetVariableValue("回合数", round_num);
 	}
 
 	//处理神秘剑客的特殊事件
-	if ((!defeat_jianke) && (current_enemy == &fJianke)&& (round_num >= 11))
-	{
-		common_diag.set_text("神秘剑客：停！@神秘剑客：已经十个回合了！恭喜你！你赢了！@阿青：外面那个女孩一直说你帅，我觉得今天你才真的帅！");
-		common_diag.show(screen);
-        stateStack.pop();
-        stateStack.push(FIGHT_END_);
-		// Flag = FIGHT_END_;
-		return;
-	}
+	// if ((!defeat_jianke) && (current_enemy == &fJianke)&& (round_num >= 11))
+	// {
+	// 	common_diag.set_text("神秘剑客：停！@神秘剑客：已经十个回合了！恭喜你！你赢了！@阿青：外面那个女孩一直说你帅，我觉得今天你才真的帅！");
+	// 	common_diag.show(screen);
+    //     stateStack.pop();
+    //     stateStack.push(FIGHT_END_);
+	// 	// Flag = FIGHT_END_;
+	// 	return;
+	// }
 	
 	if (frame_fight >= 6) {
 		if(fAqing.bAttack) {
 			if (!(current_enemy->can_defend(fAqing.Attack ))) {
               //play_sound("voc\\Victory.wav");
-              PlayWavSound(QING_VICT);
+                PlayWavSound(QING_VICT);
 				if (current_enemy->Attack <= fAqing.Defend)
 				{
 					fAqing.HP += 1;
@@ -386,23 +390,27 @@ void Fighting()
 					sprintf( temp, "你战胜了%s！@最大战斗力提升 %d ，攻击力提升 %d ，防御力提升 %d ！", 
 						current_enemy->Name, current_enemy->HP /10, current_enemy->Attack /10, current_enemy->Defend /10);
 				}
+                current_enemy->cHP = current_enemy->HP;
+                SetVariableValue("战胜", 1);
 				common_diag.set_text(temp);
 				common_diag.show(screen);
                 stateStack.pop();
-                stateStack.push(FIGHT_END_);
+                stateStack.push(GAME_MESSAGE_);
 				// Flag = FIGHT_END_;
 			}
 		}
 		else {
 			if(!(fAqing.can_defend(current_enemy->Attack))) {
               //play_sound("voc\\Fail.wav");
-              PlayWavSound(QING_FAIL);
+                PlayWavSound(QING_FAIL);
 				sprintf(temp, "你输给了%s！", current_enemy->Name );
 				common_diag.set_text(temp);
 				common_diag.show(screen);
 				////FlipPage();
+                current_enemy->cHP = current_enemy->HP;
+                SetVariableValue("战胜", 0);
                 stateStack.pop();
-                stateStack.push(FIGHT_END_);
+                stateStack.push(GAME_MESSAGE_);
 				// Flag = FIGHT_END_;
 			}
 		}
@@ -657,72 +665,75 @@ void FightEnd()
 //系统消息显示中
 void GameMessage()
 {
-    Uint8 *keys = SDL_GetKeyState(NULL);
+    SDL_Event e;
+    SDL_WaitEvent(&e);
+    if (e.type = SDL_KEYUP){
+        //Uint8 *keys = SDL_GetKeyState(NULL);
 
-	if(keys[SDLK_SPACE])
-	{
+	// if(keys[SDLK_SPACE])
+	// {
 		//PressKey(VK_SPACE);
-      WaitKeyRelease();
+        // WaitKeyRelease();
 		if (common_diag.is_over())
 		{
-			if(TrapNum == 210)
-			{
-				Fanli.Dir = 1;
-				RefreshCanvas();
-				TrapNum = 211;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-				// Flag = AUTO_PLAY_;
-				return;
-			}
-			if(TrapNum == 220)
-			{
-				DrawPic("./pic/landscape.bmp");
-				TrapNum = 221;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-				// Flag = AUTO_PLAY_;
-				return;
-			}
-			if(TrapNum == 221)
-			{
-				ClrScr();
-				//FlipPage();
-				TrapNum = 222;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-                // Flag = AUTO_PLAY_;
-				return;
-			}
+			// if(TrapNum == 210)
+			// {
+			// 	Fanli.Dir = 1;
+			// 	RefreshCanvas();
+			// 	TrapNum = 211;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+			// 	// Flag = AUTO_PLAY_;
+			// 	return;
+			// }
+			// if(TrapNum == 220)
+			// {
+			// 	DrawPic("./pic/landscape.bmp");
+			// 	TrapNum = 221;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+			// 	// Flag = AUTO_PLAY_;
+			// 	return;
+			// }
+			// if(TrapNum == 221)
+			// {
+			// 	ClrScr();
+			// 	//FlipPage();
+			// 	TrapNum = 222;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+            //     // Flag = AUTO_PLAY_;
+			// 	return;
+			// }
 
-			if(TrapNum == 300) //如果是阿青来到吴王宫的剧情
-			{
-				RefreshCanvas();
-				TrapNum = 301;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-                // Flag = AUTO_PLAY_;
-				return;
-			}
-			if(TrapNum == 301) //如果是范蠡出现的剧情
-			{
-				RefreshCanvas();
-				TrapNum = 302;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-                // Flag = AUTO_PLAY_;
-				return;
-			}
-			if(TrapNum == 302)	//如果是西施出现的剧情
-			{
-				Aqing.Dir = 0;
-				RefreshCanvas();
-				TrapNum = 303;
-                stateStack.pop();
-                stateStack.push(AUTO_PLAY_);
-                // Flag = AUTO_PLAY_;
-				return;
-			}
+			// if(TrapNum == 300) //如果是阿青来到吴王宫的剧情
+			// {
+			// 	RefreshCanvas();
+			// 	TrapNum = 301;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+            //     // Flag = AUTO_PLAY_;
+			// 	return;
+			// }
+			// if(TrapNum == 301) //如果是范蠡出现的剧情
+			// {
+			// 	RefreshCanvas();
+			// 	TrapNum = 302;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+            //     // Flag = AUTO_PLAY_;
+			// 	return;
+			// }
+			// if(TrapNum == 302)	//如果是西施出现的剧情
+			// {
+			// 	Aqing.Dir = 0;
+			// 	RefreshCanvas();
+			// 	TrapNum = 303;
+            //     stateStack.pop();
+            //     stateStack.push(AUTO_PLAY_);
+            //     // Flag = AUTO_PLAY_;
+			// 	return;
+			// }
 //			if(TrapNum == 303)	//如果是阿青离去的剧情
 //			{
 //				DrawEnd();
@@ -731,7 +742,7 @@ void GameMessage()
 //				return;
 //			}
 		
-			RefreshCanvas();
+			// RefreshCanvas();
             stateStack.pop();
 			// Flag = oldFlag;
 		}
@@ -753,246 +764,265 @@ void AutoPlay()
 	switch(TrapNum)
 	{
 	case 200:	//从越国到吴国
-		Aqing.set_location(3,0,240,SCR_H-40);
-		GotoMap(&Map_Wuguo);
-		ClrScr();
-		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于来到了吴国都城前。");
-		common_diag.show(screen);
-		//FlipPage();
         stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("从越国到吴国");
+		// Aqing.set_location(3,0,240,SCR_H-40);
+		// GotoMap(&Map_Wuguo);
+		// ClrScr();
+		// common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于来到了吴国都城前。");
+		// common_diag.show(screen);
+		//FlipPage();
+        // stateStack.pop();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 201:	//从吴国到越国
-		Aqing.set_location(0,0, 200,100);
-		GotoMap(&Map_outside);
-		ClrScr();
-		common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于回到了越国都城郊外。");
-		common_diag.show(screen);
-		//FlipPage();
         stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("从吴国到越国");
+		// Aqing.set_location(0,0, 200,100);
+		// GotoMap(&Map_outside);
+		// ClrScr();
+		// common_diag.set_text("经过四五天的长途跋涉，小太妹阿青终于回到了越国都城郊外。");
+		// common_diag.show(screen);
+		//FlipPage();
+        // stateStack.pop();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 202:	//第一次来到赵大爷身边
-		Aqing.Dir = 3;
-		RefreshCanvas();
-		common_diag.set_text("张大爷：该死的吴国剑士，又来我们国家示威了，杀了我们十多名剑士。唉……我看主要是他们的剑好，不然我们剑士的剑怎么会被他们砍断呢？如果有一位高明的剑客传授我们国家的剑士剑法，或许能扳回这个劣势……@阿青：……");
-		common_diag.show(screen);
+        stateStack.pop();
+        RunScripts("初见张大爷");
+		// Aqing.Dir = 3;
+		// RefreshCanvas();
+		// common_diag.set_text("张大爷：该死的吴国剑士，又来我们国家示威了，杀了我们十多名剑士。唉……我看主要是他们的剑好，不然我们剑士的剑怎么会被他们砍断呢？如果有一位高明的剑客传授我们国家的剑士剑法，或许能扳回这个劣势……@阿青：……");
+		// common_diag.show(screen);
 		//FlipPage();
 		//去除陷阱
-		current_map->del_trap_by_num(202);
-        stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
+		// current_map->del_trap_by_num(202);
+        // stateStack.pop();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 203:
-		Aqing.Dir = 1;
-		Aqing.Step = 0;
-		RefreshCanvas();
-		current_enemy = &fWushi1;
-		current_enemy->F = &fWushi2;
-		sprintf(temp, "李大叔：大爷，小人做小本生意的，您不能拿这么多水果不给钱，求您多少给一点。@吴国剑士甲：去你妈的，在越国还没哪个敢管我，你还敢跟老子要钱！@吴国剑士乙：大哥，不出手教训他一下不知道我们吴国人的厉害！@吴国剑士甲：对，揍他！@阿青：住手！@你与%s开始战斗！", current_enemy->Name );
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
-		current_map->del_trap_by_num(203);
         stateStack.pop();
-        stateStack.push(FIGHT_START_);
+        RunScripts("初见李大叔");
+        
+		// Aqing.Dir = 1;
+		// Aqing.Step = 0;
+		// RefreshCanvas();
+		// current_enemy = &fWushi1;
+		// current_enemy->F = &fWushi2;
+		// sprintf(temp, "李大叔：大爷，小人做小本生意的，您不能拿这么多水果不给钱，求您多少给一点。@吴国剑士甲：去你妈的，在越国还没哪个敢管我，你还敢跟老子要钱！@吴国剑士乙：大哥，不出手教训他一下不知道我们吴国人的厉害！@吴国剑士甲：对，揍他！@阿青：住手！@你与%s开始战斗！", current_enemy->Name );
+		// common_diag.set_text(temp);
+		// common_diag.show(screen);
+		//FlipPage();
+		// current_map->del_trap_by_num(203);
+        // stateStack.pop();
+        // stateStack.push(FIGHT_START_);
 		// Flag = FIGHT_START_;
 		break;
-	case 210:
-		result = Fanli.move_to(4,6);
-		if(result)
-		{
-			RefreshCanvas();
-			// Flag = AUTO_PLAY_;
-		}
-		else
-		{
-			RefreshCanvas();
-			common_diag.set_text("范蠡：好剑法！好剑法！我们国家有这样的人才，何愁不能壮大？@范蠡：小姑娘，你刚才用的剑法是谁教你的？@阿青：剑法？什么剑法？@范蠡：……  ……@范蠡：……，小姑娘，愿意到我家做客吗？@阿青：老头家中可有什么好玩的？@范蠡：好玩的东西简直数不清！@阿青：好，那我去！@范蠡：好，那老头我先行一步，姑娘随后赶来吧，寒舍就在城南！");
-			common_diag.show(screen);
-			//FlipPage();
-			asked_by_fanli = 1;
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-			// Flag = GAME_MESSAGE_;
-		}
-		break;
-	case 211:
-		result = Fanli.move_to(1,6);
-		if(result)
-		{
-			RefreshCanvas();
-			// Flag = AUTO_PLAY_;
-		}
-		else
-		{
-			Map_shaoxing.del_npc(&Fanli );
-			RefreshCanvas();
-			Fanli.set_location(2,0,80,95);
-            stateStack.pop();
-			// Flag = MAIN_MOVE_;
-		}
-		break;
+	// case 210:
+	// 	result = Fanli.move_to(4,6);
+	// 	if(result)
+	// 	{
+	// 		RefreshCanvas();
+	// 		// Flag = AUTO_PLAY_;
+	// 	}
+	// 	else
+	// 	{
+	// 		RefreshCanvas();
+	// 		common_diag.set_text("范蠡：好剑法！好剑法！我们国家有这样的人才，何愁不能壮大？@范蠡：小姑娘，你刚才用的剑法是谁教你的？@阿青：剑法？什么剑法？@范蠡：……  ……@范蠡：……，小姑娘，愿意到我家做客吗？@阿青：老头家中可有什么好玩的？@范蠡：好玩的东西简直数不清！@阿青：好，那我去！@范蠡：好，那老头我先行一步，姑娘随后赶来吧，寒舍就在城南！");
+	// 		common_diag.show(screen);
+	// 		//FlipPage();
+	// 		asked_by_fanli = 1;
+    //         stateStack.pop();
+    //         stateStack.push(GAME_MESSAGE_);
+	// 		// Flag = GAME_MESSAGE_;
+	// 	}
+	// 	break;
+	// case 211:
+	// 	result = Fanli.move_to(1,6);
+	// 	if(result)
+	// 	{
+	// 		RefreshCanvas();
+	// 		// Flag = AUTO_PLAY_;
+	// 	}
+	// 	else
+	// 	{
+	// 		Map_shaoxing.del_npc(&Fanli );
+	// 		RefreshCanvas();
+	// 		Fanli.set_location(2,0,80,95);
+    //         stateStack.pop();
+	// 		// Flag = MAIN_MOVE_;
+	// 	}
+	// 	break;
 
 	case 205:
-		current_map->add_npc(&Feitu, Feitu.X,Feitu.Y);
-		current_map->del_trap_by_num(205);
-		current_enemy = &fFeitu;
-		Aqing.Dir =2;
-		RefreshCanvas();
-		sprintf(temp,"匪徒：站……站住！打……打……打劫！@匪徒：哦？小……小妞不错呀，我……先劫……劫个色！@阿青：你找死！@你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
         stateStack.pop();
-        stateStack.push(FIGHT_START_);
+        RunScripts("遭遇匪徒");
+		// current_map->add_npc(&Feitu, Feitu.X,Feitu.Y);
+		// current_map->del_trap_by_num(205);
+		// current_enemy = &fFeitu;
+		// Aqing.Dir =2;
+		// RefreshCanvas();
+		// sprintf(temp,"匪徒：站……站住！打……打……打劫！@匪徒：哦？小……小妞不错呀，我……先劫……劫个色！@阿青：你找死！@你与%s发生战斗！", current_enemy->Name);
+		// common_diag.set_text(temp);
+		// common_diag.show(screen);
+		//FlipPage();
+        // stateStack.pop();
+        // stateStack.push(FIGHT_START_);
 		// Flag = FIGHT_START_;
 		break;
 
 	case 206:	//第一次见张平的剧情
-		current_map->del_trap_by_num(206);
-		current_enemy = &fShangping;
-		sprintf(temp, "商平：哈哈哈，小丫头，你知道我是谁吗？@阿青：不知道，我为什么要知道？@商平：气死我了！我就是商平，“天见商平，寸草不生；人见商平，吓得不行”的商平！@阿青：这地方草最多了，怎么叫寸草不生？我见了你，也没有吓得不行呀，哈哈！@商平：气死我了！给你点厉害瞧瞧！@你与%s发生战斗！", current_enemy->Name);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
-		//FlipPage();
         stateStack.pop();
-        stateStack.push(FIGHT_START_);
+        RunScripts("遭遇商平");
+		// current_map->del_trap_by_num(206);
+		// current_enemy = &fShangping;
+		// sprintf(temp, "商平：哈哈哈，小丫头，你知道我是谁吗？@阿青：不知道，我为什么要知道？@商平：气死我了！我就是商平，“天见商平，寸草不生；人见商平，吓得不行”的商平！@阿青：这地方草最多了，怎么叫寸草不生？我见了你，也没有吓得不行呀，哈哈！@商平：气死我了！给你点厉害瞧瞧！@你与%s发生战斗！", current_enemy->Name);
+		// common_diag.set_text(temp);
+		// common_diag.show(screen);
+		//FlipPage();
+        // stateStack.pop();
+        // stateStack.push(FIGHT_START_);
 		// Flag = FIGHT_START_;
 		break;
-	case 207:	
-		WuWeibing1.X += 30;
-		WuWeibing2.X -= 30;
-		Aqing.Y = 280;
-		RefreshCanvas();
-		common_diag.set_text("吴国卫兵：后面就是吴王宫，你不能再往里走了。");
-		common_diag.show(screen);
-		//FlipPage();
-		WuWeibing1.X -=30;
-		WuWeibing2.X += 30;
+	case 207:
         stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("卫兵阻拦");
+		// WuWeibing1.X += 30;
+		// WuWeibing2.X -= 30;
+		// Aqing.Y = 280;
+		// RefreshCanvas();
+		// common_diag.set_text("吴国卫兵：后面就是吴王宫，你不能再往里走了。");
+		// common_diag.show(screen);
+		//FlipPage();
+		// WuWeibing1.X -=30;
+		// WuWeibing2.X += 30;
+        // stateStack.pop();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 
-	case 220:
-		DrawPic("./pic/troop.bmp");
-		common_diag.set_text("阿青胜利了！@神秘剑客也兑现了他的诺言，向越国优秀的剑士传授了一些剑道的要领。@这些要领很快普及了越国的军营，越国的作战实力大幅度提高了！@一年后，即公元482年，越国趁吴国大军北征之机向吴国发动了进攻，大获全胜，攻占了姑苏。");
-		common_diag.show(screen );
-		//FlipPage();
-		Map_fanli.del_npc(&Fanli );
-		Map_Wuguo.del_trap_by_num(207);
-		Map_Wuguo.add_trap(7,7,209);
-		Map_Wuguo.add_trap(8,7,209);
-		Map_Wuguo.del_all_npc();
-		Map_Wuguo.add_npc(&Shiwei, Shiwei.X, Shiwei.Y);
-		GotoMap( &Map_aqing);
-		fAqing.cHP = fAqing.HP;
-		Aqing.set_location(0,0,240,190);
-        stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
-		// Flag = GAME_MESSAGE_;
-		break;
-	case 221:
-		common_diag.set_text("在这一年时间里，范蠡也信守诺言，每天都有一些时间和阿青在一起。@阿青觉得虽然这个老头打架不是自己的对手，但他睿智的谈吐总让自己莫名地愉快。@阿青已经不再揪范蠡的胡子玩，但她越来越喜欢和范蠡在一起，听他讲道理，陪他看草原上的日落。");
-		common_diag.show(screen );
-		//FlipPage();
-        stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
-		// Flag = GAME_MESSAGE_;
-		break;
-	case 222:
-		common_diag.set_text("但是越国攻占姑苏后，已经有几天找不到范蠡了……");
-		common_diag.show(screen);
-		//FlipPage();
-        stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
-		// Flag = GAME_MESSAGE_;
-		break;
+	// case 220:
+	// 	DrawPic("./pic/troop.bmp");
+	// 	common_diag.set_text("阿青胜利了！@神秘剑客也兑现了他的诺言，向越国优秀的剑士传授了一些剑道的要领。@这些要领很快普及了越国的军营，越国的作战实力大幅度提高了！@一年后，即公元482年，越国趁吴国大军北征之机向吴国发动了进攻，大获全胜，攻占了姑苏。");
+	// 	common_diag.show(screen );
+	// 	//FlipPage();
+	// 	Map_fanli.del_npc(&Fanli );
+	// 	Map_Wuguo.del_trap_by_num(207);
+	// 	Map_Wuguo.add_trap(7,7,209);
+	// 	Map_Wuguo.add_trap(8,7,209);
+	// 	Map_Wuguo.del_all_npc();
+	// 	Map_Wuguo.add_npc(&Shiwei, Shiwei.X, Shiwei.Y);
+	// 	GotoMap( &Map_aqing);
+	// 	fAqing.cHP = fAqing.HP;
+	// 	Aqing.set_location(0,0,240,190);
+    //     stateStack.pop();
+    //     stateStack.push(GAME_MESSAGE_);
+	// 	// Flag = GAME_MESSAGE_;
+	// 	break;
+	// case 221:
+	// 	common_diag.set_text("在这一年时间里，范蠡也信守诺言，每天都有一些时间和阿青在一起。@阿青觉得虽然这个老头打架不是自己的对手，但他睿智的谈吐总让自己莫名地愉快。@阿青已经不再揪范蠡的胡子玩，但她越来越喜欢和范蠡在一起，听他讲道理，陪他看草原上的日落。");
+	// 	common_diag.show(screen );
+	// 	//FlipPage();
+    //     stateStack.pop();
+    //     stateStack.push(GAME_MESSAGE_);
+	// 	// Flag = GAME_MESSAGE_;
+	// 	break;
+	// case 222:
+	// 	common_diag.set_text("但是越国攻占姑苏后，已经有几天找不到范蠡了……");
+	// 	common_diag.show(screen);
+	// 	//FlipPage();
+    //     stateStack.pop();
+    //     stateStack.push(GAME_MESSAGE_);
+	// 	// Flag = GAME_MESSAGE_;
+	// 	break;
 
 	case 209:
-		common_diag.set_text("吴吉庆：小姑娘，既然你要强行通过，别怪我不客气了！@你与西施的侍卫吴吉庆发生战斗！");
-		common_diag.show(screen);
-		//FlipPage();
-		current_enemy = &fShiwei;
         stateStack.pop();
-        stateStack.push(FIGHT_START_);
+        RunScripts("强闯吴宫");
+		// common_diag.set_text("吴吉庆：小姑娘，既然你要强行通过，别怪我不客气了！@你与西施的侍卫吴吉庆发生战斗！");
+		// common_diag.show(screen);
+		// //FlipPage();
+		// current_enemy = &fShiwei;
+        // stateStack.pop();
+        // stateStack.push(FIGHT_START_);
 		// Flag = FIGHT_START_;
 		break;
 
 	case 300:	//阿青来到吴王宫
-		Map_Gongdian.del_trap_by_num(300);
-		common_diag.set_text("阿青：范蠡，范蠡！你在哪里？@阿青：范蠡，你出来吧！@……  ……@范蠡：我在这里！");
-		common_diag.show(screen);
-		//FlipPage();
-		Map_Gongdian.add_npc(&Fanli, 50, 220);
         stateStack.pop();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("看见西施");
+		// Map_Gongdian.del_trap_by_num(300);
+		// common_diag.set_text("阿青：范蠡，范蠡！你在哪里？@阿青：范蠡，你出来吧！@……  ……@范蠡：我在这里！");
+		// common_diag.show(screen);
+		// //FlipPage();
+		// Map_Gongdian.add_npc(&Fanli, 50, 220);
+        // stateStack.pop();
+        // stateStack.push(GAME_MESSAGE_);
 
 		// Flag = GAME_MESSAGE_;
 		break;
-	case 301:	//范蠡出现
-		result = Fanli.move_to(7,6);
-		if(result)
-		{
-			RefreshCanvas();
-			// Flag = AUTO_PLAY_;
-		}
-		else
-		{
-			Fanli.Dir = 0;
-			RefreshCanvas();
-			common_diag.set_text("阿青：老头你躲在这里做什么？@范蠡：……姑苏城百废待兴，我在这里办公。@阿青：呵呵，我在这里陪你吧。顺便在这城里玩玩。@范蠡：……@西施：丞相，谁找你呀？");
-			common_diag.show(screen);
-			//FlipPage();
-			Map_Gongdian.add_npc(&Xishi, 50,220);
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-			// Flag = GAME_MESSAGE_;
-		}
-		break;
+	// case 301:	//范蠡出现
+	// 	result = Fanli.move_to(7,6);
+	// 	if(result)
+	// 	{
+	// 		RefreshCanvas();
+	// 		// Flag = AUTO_PLAY_;
+	// 	}
+	// 	else
+	// 	{
+	// 		Fanli.Dir = 0;
+	// 		RefreshCanvas();
+	// 		common_diag.set_text("阿青：老头你躲在这里做什么？@范蠡：……姑苏城百废待兴，我在这里办公。@阿青：呵呵，我在这里陪你吧。顺便在这城里玩玩。@范蠡：……@西施：丞相，谁找你呀？");
+	// 		common_diag.show(screen);
+	// 		//FlipPage();
+	// 		Map_Gongdian.add_npc(&Xishi, 50,220);
+    //         stateStack.pop();
+    //         stateStack.push(GAME_MESSAGE_);
+	// 		// Flag = GAME_MESSAGE_;
+	// 	}
+	// 	break;
 
-	case 302:	//西施出现
-		result = Xishi.move_to(6,6);
-		if(result)
-		{
-			RefreshCanvas();
-			// Flag = AUTO_PLAY_;
-		}
-		else
-		{
-			Xishi.Dir = 0;
-			RefreshCanvas();
-			common_diag.set_text("阿青：喂，你是谁呀？和老头这么亲密？！@西施：我是夷光。@范蠡：……@阿青：我明白老头你为什么不回去了。……@西施：……@范蠡：……@阿青：她太美了，真的太美了……");
-			common_diag.show(screen);
-			//FlipPage();
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-			// Flag = GAME_MESSAGE_;
-		}
-		break;
+	// case 302:	//西施出现
+	// 	result = Xishi.move_to(6,6);
+	// 	if(result)
+	// 	{
+	// 		RefreshCanvas();
+	// 		// Flag = AUTO_PLAY_;
+	// 	}
+	// 	else
+	// 	{
+	// 		Xishi.Dir = 0;
+	// 		RefreshCanvas();
+	// 		common_diag.set_text("阿青：喂，你是谁呀？和老头这么亲密？！@西施：我是夷光。@范蠡：……@阿青：我明白老头你为什么不回去了。……@西施：……@范蠡：……@阿青：她太美了，真的太美了……");
+	// 		common_diag.show(screen);
+	// 		//FlipPage();
+    //         stateStack.pop();
+    //         stateStack.push(GAME_MESSAGE_);
+	// 		// Flag = GAME_MESSAGE_;
+	// 	}
+	// 	break;
 
-	case 303:	//阿青离开
-		result = Aqing.move_to(7,9);
-		if(result)
-		{
-			RefreshCanvas();
-			// Flag = AUTO_PLAY_;
-		}
-		else
-		{
-			common_diag.set_text("阿青离去了，没有人知道她去了哪里。@她终于生平第一次体验到了伤心的滋味。@让我们一起来鄙视范蠡这个欺骗少女之心的老头吧！@亲爱的朋友们，游戏到此就告一段落了。如果你还没过瘾，继续在各个场景中转一下吧。@让我们一起为Linux 游戏做些贡献吧，这对Linux 的进一步普及很重要。");
-			common_diag.show(screen);
-			//FlipPage();
-			// Flag = GAME_MESSAGE_;
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
+	// case 303:	//阿青离开
+	// 	result = Aqing.move_to(7,9);
+	// 	if(result)
+	// 	{
+	// 		RefreshCanvas();
+	// 		// Flag = AUTO_PLAY_;
+	// 	}
+	// 	else
+	// 	{
+	// 		common_diag.set_text("阿青离去了，没有人知道她去了哪里。@她终于生平第一次体验到了伤心的滋味。@让我们一起来鄙视范蠡这个欺骗少女之心的老头吧！@亲爱的朋友们，游戏到此就告一段落了。如果你还没过瘾，继续在各个场景中转一下吧。@让我们一起为Linux中文游戏做些贡献吧，这对Linux的进一步普及很重要。");
+	// 		common_diag.show(screen);
+	// 		//FlipPage();
+	// 		// Flag = GAME_MESSAGE_;
+    //         stateStack.pop();
+    //         stateStack.push(GAME_MESSAGE_);
 
-		}
-		break;
+	// 	}
+	// 	break;
 		
 		
 	default:
@@ -1557,24 +1587,33 @@ void GameTitle()
 void GameExit()
 {
     DrawEnd();
-	current_map = NULL;
-	current_enemy = NULL;
+    SDL_Flip(screen);
+
+	// current_map = NULL;
+	// current_enemy = NULL;
 
     if(g_script) {
         delete g_script;
         g_script = NULL;
     }
 
-    SDL_Delay(2000);
+    SDL_Event e;
+    SDL_WaitEvent(&e);
+    if(e.type == SDL_KEYDOWN)
+        game_running = 0;
+
+    //SDL_Delay(2000);
     // static short counter = 6;
     // if(counter == 0)
-    game_running = 0;
     //counter --;
 }
 
 //游戏过程中调出系统菜单
 void System_Menu()
 {
+    RefreshCanvas();
+    DrawSystemMenu();
+    
     Uint8 *keys = SDL_GetKeyState(NULL);
 
 	if(keys[SDLK_ESCAPE])	//如果按下ESC
@@ -1713,10 +1752,15 @@ void Load()
 		}
 		else
 		{
+            RefreshCanvas();
+            common_diag.set_text("读取成功！");
+            common_diag.show(screen);
 			GetMapbyID(Aqing.MapID);
 			RelayoutNpc();
-			RefreshCanvas();
 			stateStack.pop();
+            if (stateStack.top() == SYSTEM_MENU_)
+                stateStack.pop();
+            stateStack.push(GAME_MESSAGE_);
 		}
 		return;
 	}
@@ -1881,6 +1925,7 @@ void WaitSelect()
             SetVariableValue("选择", 0);
 			//Flag = SELECT_NO_;
 		}
+        RefreshCanvas();
         stateStack.pop();
         // Flag = oldFlag;
 		return;
@@ -2497,31 +2542,35 @@ void QueryMessage(short n)
 	switch(n)
 	{
 	case 100:
-		common_diag.set_text( "店主由于沉溺于编程，此店暂停营业，正在出租中！");
-		common_diag.show(screen);
-		//FlipPage();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("酒楼门口");
+		// common_diag.set_text( "店主由于沉溺于编程，此店暂停营业，正在出租中！");
+		// common_diag.show(screen);
+		// FlipPage();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 101:
-		common_diag.set_text("这个屋子的主人搬走了，据说因为受了旁边店主的鼓动，隐居去编程了！");
-		common_diag.show(screen);
-		//FlipPage();
-        stateStack.push(GAME_MESSAGE_);
+        RunScripts("酒楼右边房间");
+		// common_diag.set_text("这个屋子的主人搬走了，据说因为受了旁边店主的鼓动，隐居去编程了！");
+		// common_diag.show(screen);
+		// FlipPage();
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 102:
-		common_diag.set_text("无赖掌柜：本店早就没货了，我懒得很，小妞，长得满标致的，做我老婆来拯救我吧！@阿青：你去死吧！");
-		common_diag.show(screen);
+        RunScripts("无赖掌柜");
+		// common_diag.set_text("无赖掌柜：本店早就没货了，我懒得很，小妞，长得满标致的，做我老婆来拯救我吧！@阿青：你去死吧！");
+		// common_diag.show(screen);
 		//FlipPage();
-        stateStack.push(GAME_MESSAGE_);
+        // stateStack.push(GAME_MESSAGE_);
 		// Flag = GAME_MESSAGE_;
 		break;
 	case 103:
-		play_sound("voc\\OpenBox.wav");
-		current_map = &Map_Xiangfang;
-		Aqing.MapID = Map_Xiangfang.ID;
-		Aqing.set_location(3,0,240,280);
+        RunScripts("进厢房");
+		// play_sound("voc/OpenBox.wav");
+		// current_map = &Map_Xiangfang;
+		// Aqing.MapID = Map_Xiangfang.ID;
+		// Aqing.set_location(3,0,240,280);
 		// Flag = MAIN_MOVE_;
 		break;
 	}
@@ -2779,6 +2828,8 @@ short LoadData( char * path)
 	fread(&really_defeat_jianke, sizeof(short), 1, fp);	//12
 	fread(&defeat_shiwei, sizeof(short), 1, fp);	//13
 
+    fread(vars, sizeof(stVariable), VAR_NUMBER, fp);
+
 	fclose(fp);
 	return 0;
 	
@@ -2864,7 +2915,7 @@ short StoreData(char * path)
 	fwrite(&really_defeat_jianke, sizeof(short), 1, fp);	//12
 	fwrite(&defeat_shiwei, sizeof(short), 1, fp);	//13
 		
-	
+    fwrite(vars, sizeof(stVariable), VAR_NUMBER, fp);
 	//关闭文件
 	fclose(fp);
 	return 0;

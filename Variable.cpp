@@ -6,6 +6,7 @@ stVariable vars[VAR_NUMBER];
 
 /*void InitVariables()
 {
+
 	ClearVariable();
 	AddVariable("击败西施侍卫");
 	AddVariable("真正击败剑客");
@@ -36,7 +37,7 @@ bool SetVariableValue(const char * szName, short nValue)
 	for( int i=0; i<VAR_NUMBER; ++i)
 	{
 		if ( ! strcmp(vars[i].szName, szName)){
-            std::cout << szName << ", Location: " << i << std::endl;
+            std::cout << szName << " = " << nValue << std::endl;
 			vars[i].nValue = nValue;
 			return true;
 		}

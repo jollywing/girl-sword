@@ -454,6 +454,9 @@ void InitAudio()
 
 void PlayWavSound(char sound)
 {
+    if(sound < 0 || sound >= SND_NUM)
+        return;
+
     PlaySound(&wav_sounds[sound]);
 }
 

@@ -148,7 +148,7 @@ short Fighter::can_defend(short eAttack)
 		return 1;
 	}
 	else {
-		cHP = 0;
+		cHP = 1;
 		return 0;
 	}
 }

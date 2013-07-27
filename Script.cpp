@@ -15,12 +15,9 @@ CScript * g_script;
 
 void RunScripts(const char * szName )
 {
-    stateStack.push(RUN_SCRIPT_);
-	// oldFlag = Flag;
-	// Flag = RUN_SCRIPT_;
-
 	if(g_script->FindScripts(szName))
 	{
+        stateStack.push(RUN_SCRIPT_);
 		g_script->ExecuteScriptLine();
 	}
 }
@@ -249,6 +246,21 @@ void CScript::ExecuteScriptLine()
 		// FlipPage();
 	}
 
+	//格式：	UPDATESCREEN
+	else if(! strcmp(szCommand, "UPDATESCREEN"))
+	{
+		RefreshCanvas();
+		// FlipPage();
+	}
+
+    //格式：    WAIT n(ms)
+	else if(! strcmp(szCommand, "WAIT"))
+	{
+		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+		short time = atoi(szNumberBuffer);
+		SDL_Delay(time);
+	}
+
 	//格式：	PLAYSOUND filename
 	else if(! strcmp(szCommand, "PLAYSOUND"))
 	{
@@ -313,10 +325,11 @@ void CScript::ExecuteScriptLine()
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		current_enemy = GetFighterAddr(szStringBuffer);
 		sprintf(temp, "你与%s开始战斗！", current_enemy->Name );
-        stateStack.push(FIGHT_START_);
+        stateStack.push(FIGHTING_);
         stateStack.push(GAME_MESSAGE_);
 		common_diag.set_text(temp);
 		common_diag.show(screen);
+        StartFight();
 		// FlipPage();
 		// oldFlag = Flag;	//保存执行脚本的状态
 		// Flag = FIGHT_START_;		
@@ -326,7 +339,10 @@ void CScript::ExecuteScriptLine()
 	else if(!strcmp( szCommand, "REMOVENPC"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		current_map->del_npc( GetRoleAddr(szStringBuffer));
+        if(!strcmp(szStringBuffer, ""))
+            current_map->del_all_npc();
+        else
+            current_map->del_npc( GetRoleAddr(szStringBuffer));
 	}
 
 	//格式：	ADDNPC name x, y
@@ -341,7 +357,29 @@ void CScript::ExecuteScriptLine()
 		current_map->add_npc( GetRoleAddr(szStringBuffer),x,y);
 	}
 
-	//格式：	SETDIR name dir
+    //格式:      DELTRAP trapnum
+    else if(! strcmp(szCommand, "DELTRAP"))
+    {
+        int trapNum;
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+        trapNum = atoi(szNumberBuffer);
+        current_map->del_trap_by_num(trapNum);
+    }
+
+    //格式：    ADDTRAP trapnum x y
+    else if(! strcmp(szCommand, "ADDTRAP"))
+    {
+        int trapNum, x, y;
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+        trapNum = atoi(szNumberBuffer);
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+        x = atoi(szNumberBuffer);
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
+        y = atoi(szNumberBuffer);
+        current_map->add_trap(x, y, trapNum);
+    }
+
+	//格式:	     SETDIR name dir
 	else if(! strcmp(szCommand, "SETDIR"))
 	{
 		Role * r;
