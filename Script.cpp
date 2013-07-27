@@ -477,7 +477,8 @@ void CScript::ExecuteScriptLine()
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
 		common_diag.set_text(szStringBuffer);
 		common_diag.show(screen);
-        stateStack.push(BEFORE_SELECT_);
+        stateStack.push(WAIT_SELECT_);
+        stateStack.push(GAME_MESSAGE_);
 		// FlipPage();
 		// oldFlag = Flag;
 		// Flag = BEFORE_SELECT_;

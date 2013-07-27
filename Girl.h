@@ -47,7 +47,7 @@ void MainMove();	//2 主角在地图走动的函数
 void StartFight();	//3 开始战斗
 void Fighting();	//4	战斗中
 void FightEnd();	//5 战斗结束
-void TreatNpc();	//6 处理Npc事件
+// void TreatNpc();	//6 处理Npc事件
 void GameTitle();	//7
 void GameExit();	//8 游戏退出
 void System_Menu();	//9 游戏过程中调出系统菜单
@@ -84,7 +84,7 @@ void BorderCheck(int *x,int *y);	//1 边界检测
 short CrushCheck();					//2 碰撞检测
 void SceneChange();					//3 场景切换函数
 void QueryMessage(short);			//4 响应玩家在特定地点按下空格事件
-short FindNpc();					//5 寻找玩家面对的Npc,返回Npc的ID
+Role * FindNpc();					//5 寻找玩家面对的Npc,返回Npc的ID
 void GetMapbyID(int);				//6 通过地图ID，改变current_map
 Role * GetNpcbyID(int);				//7 得到npc的指针
 void RelayoutNpc();					//8 切换地图时，重新加载NPC
