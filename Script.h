@@ -53,8 +53,8 @@ public:
 private:
 	//short GetRecordNum();	
 	bool Expression();	//求表达式的值
-    void GotoNextBranch();  // find next branch in IF .. ELSEIF .. ELSE .. ENDIF
-    void GotoBranchEnd();   // find the matching ENDIF
+    char GotoNextBranch();  // find next branch in IF .. ELSEIF .. ELSE .. ENDIF
+    char GotoBranchEnd();   // find the matching ENDIF
     
 	void LoadScripts( );	// load scripts	
 	bool FindRecordHead(); //find where record begin

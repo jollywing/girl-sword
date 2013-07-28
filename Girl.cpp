@@ -20,31 +20,10 @@ using namespace std;
 // int current_npc_id;	//当前的Npc的id
 Map * current_map;	//当前的地图指针
 short TrapNum; //玩家踩中的陷阱编号
-long old_time, new_time; //用于计算帧时间的变量
 short frame_fight;	//战斗时的帧计数
 int fight_frame_num;	//战斗的总帧数
 short round_num;	//回合数
-// short Flag, oldFlag;//游戏运行状态标志
 
-//剧情标志变量
-short asked_by_fanli;	//1 被范蠡邀请的标志
-short asked_to_house;	//2 范蠡要去厢房找好玩的东西
-short see_jianke;		//3 是否见过神秘剑客
-short get_key;			//4 得到范蠡宝箱的钥匙
-short defeat_feitu;		//5 是否打败了匪徒
-short defeat_shangping;	//6 是否打败了商平
-short ask_to_caoyuan;	//7 神秘剑客叫你去草原
-short see_yehaizi;		//8 是否见过野孩子
-short defeat_yehaizi;    //9 是否已打败野孩子
-short defeat_jianke;	    //10 是否已抵挡神秘剑客１０个回合
-short ask_where_fanli;	//11 是否已经问过范蠡的动向
-short really_defeat_jianke;	//12 是否真正打败神秘剑客
-short defeat_shiwei;		//13 打败范蠡侍卫
-
-// short bActive;
-// int SCR_X;	//窗口在屏幕上的位置
-// int SCR_Y;
-// RECT OldWindow;	//用于处理窗口移动事件，记录移动前窗口位置
 
 short game_running;
 stack<int> stateStack;
@@ -172,10 +151,6 @@ void MoveNpc()
 //游戏初始化
 void InitGame()
 {
-	//显示初始化界面
-    SDL_BlitText("游戏正在初始化。。。", screen, 100, SCR_H/2,
-            message_font, message_color);
-    SDL_Flip(screen);
 
     game_running = 1;
 	InitData();	//初始化游戏数据
@@ -183,6 +158,17 @@ void InitGame()
     stateStack.push(MAIN_MOVE_);
     stateStack.push(GAME_TITLE_);
 	// Flag = GAME_TITLE_;		//推进游戏进度
+}
+
+void new_game()
+{
+    stateStack.pop(); // leave state of game title
+	//显示初始化界面
+    SDL_FillRect(screen, NULL, 0);
+    SDL_BlitText("游戏正在初始化。。。", screen, 125, SCR_H/2,
+            message_font, message_color);
+    SDL_Flip(screen);
+    ClearVariable(); // clear all flags of plot
     RunScripts("初始化");
 }
 
@@ -493,9 +479,7 @@ void GameTitle()
         PlayWavSound(SELECT);
 		if (StartMenu[0].Sel )
 		{
-			RefreshCanvas();
-            stateStack.pop();
-			// Flag = MAIN_MOVE_;	 
+            new_game();
 		}
 		else if (StartMenu[1].Sel)
 		{
@@ -945,6 +929,13 @@ void RefreshCanvas()
 	current_map->draw_map(screen, Aqing, item);
 	DrawState();
 	//FlipPage();
+}
+
+void show_dialog(const char * content)
+{
+    common_diag.set_text(content);
+    common_diag.show(screen);
+    stateStack.push(GAME_MESSAGE_);
 }
 
 //更新战斗画面
@@ -1522,28 +1513,11 @@ void InitData()
 	current_enemy = NULL;
 	current_npc_id = 0;
 
-	//初始化剧情标志变量
-	asked_by_fanli = 0;			//1
-	asked_to_house = 0;			//2
-	see_jianke = 0;				//3
-	get_key = 0;				//4
-	defeat_feitu = 0;			//6
-	defeat_shangping = 0;		//6
-	ask_to_caoyuan = 0;			//7
-	see_yehaizi = 0;			//8
-	defeat_yehaizi = 0;			//9 是否已打败野孩子
-	defeat_jianke = 0;			//10是否已抵挡神秘剑客１０个回合
-	ask_where_fanli = 0;		//11
-	really_defeat_jianke = 0;	//12 是否真正打败神秘剑客
-	defeat_shiwei = 0;			//13 打败范蠡侍卫
-
     g_script = new CScript("scripts/script", '@');
     if (!g_script){
         cout << "Load script failed! exit!" << endl;
         exit(1);
     }
-
-    ClearVariable();
 
 }
 
@@ -1613,19 +1587,19 @@ short LoadData( char * path)
 	// }
 
 	//读取剧情标志数据
-	fread(&asked_by_fanli, sizeof(short), 1, fp);	//1
-	fread(&asked_to_house, sizeof(short), 1, fp);	//2
-	fread(&see_jianke, sizeof(short), 1, fp);	//3
-	fread(&get_key, sizeof(short), 1, fp);		//4
-	fread(&defeat_feitu, sizeof(short), 1, fp);	//5
-	fread(&defeat_shangping, sizeof(short), 1, fp);	//6
-	fread(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
-	fread(&see_yehaizi, sizeof(short), 1, fp);		//8
-	fread(&defeat_yehaizi, sizeof(short), 1, fp);	//9
-	fread(&defeat_jianke, sizeof(short), 1, fp);		//10
-	fread(&ask_where_fanli, sizeof(short), 1, fp);		//11
-	fread(&really_defeat_jianke, sizeof(short), 1, fp);	//12
-	fread(&defeat_shiwei, sizeof(short), 1, fp);	//13
+	// fread(&asked_by_fanli, sizeof(short), 1, fp);	//1
+	// fread(&asked_to_house, sizeof(short), 1, fp);	//2
+	// fread(&see_jianke, sizeof(short), 1, fp);	//3
+	// fread(&get_key, sizeof(short), 1, fp);		//4
+	// fread(&defeat_feitu, sizeof(short), 1, fp);	//5
+	// fread(&defeat_shangping, sizeof(short), 1, fp);	//6
+	// fread(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
+	// fread(&see_yehaizi, sizeof(short), 1, fp);		//8
+	// fread(&defeat_yehaizi, sizeof(short), 1, fp);	//9
+	// fread(&defeat_jianke, sizeof(short), 1, fp);		//10
+	// fread(&ask_where_fanli, sizeof(short), 1, fp);		//11
+	// fread(&really_defeat_jianke, sizeof(short), 1, fp);	//12
+	// fread(&defeat_shiwei, sizeof(short), 1, fp);	//13
 
     fread(vars, sizeof(stVariable), VAR_NUMBER, fp);
 
@@ -1700,19 +1674,19 @@ short StoreData(char * path)
 	// }
 
 	//存储剧情标志数据
-	fwrite(&asked_by_fanli, sizeof(short), 1, fp);	//1
-	fwrite(&asked_to_house, sizeof(short), 1, fp);	//2
-	fwrite(&see_jianke, sizeof(short), 1, fp);	//3
-	fwrite(&get_key, sizeof(short), 1, fp);		//4
-	fwrite(&defeat_feitu, sizeof(short), 1, fp);	//5
-	fwrite(&defeat_shangping, sizeof(short), 1, fp);	//6
-	fwrite(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
-	fwrite(&see_yehaizi, sizeof(short), 1, fp);		//8
-	fwrite(&defeat_yehaizi, sizeof(short), 1, fp);	//9
-	fwrite(&defeat_jianke, sizeof(short), 1, fp);		//10
-	fwrite(&ask_where_fanli, sizeof(short), 1, fp);		//11
-	fwrite(&really_defeat_jianke, sizeof(short), 1, fp);	//12
-	fwrite(&defeat_shiwei, sizeof(short), 1, fp);	//13
+	// fwrite(&asked_by_fanli, sizeof(short), 1, fp);	//1
+	// fwrite(&asked_to_house, sizeof(short), 1, fp);	//2
+	// fwrite(&see_jianke, sizeof(short), 1, fp);	//3
+	// fwrite(&get_key, sizeof(short), 1, fp);		//4
+	// fwrite(&defeat_feitu, sizeof(short), 1, fp);	//5
+	// fwrite(&defeat_shangping, sizeof(short), 1, fp);	//6
+	// fwrite(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
+	// fwrite(&see_yehaizi, sizeof(short), 1, fp);		//8
+	// fwrite(&defeat_yehaizi, sizeof(short), 1, fp);	//9
+	// fwrite(&defeat_jianke, sizeof(short), 1, fp);		//10
+	// fwrite(&ask_where_fanli, sizeof(short), 1, fp);		//11
+	// fwrite(&really_defeat_jianke, sizeof(short), 1, fp);	//12
+	// fwrite(&defeat_shiwei, sizeof(short), 1, fp);	//13
 		
     fwrite(vars, sizeof(stVariable), VAR_NUMBER, fp);
 	//关闭文件

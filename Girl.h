@@ -81,6 +81,7 @@ void ShowAbout();		//12 显示作品的信息
 // void FlipPage();		//13 将离屏页面的内容传送到主页面
 void DrawTitle();		//14 在离屏页面上画片头
 void DrawEnd();			//15 画片尾
+void show_dialog(const char *content);
 
 //游戏辅助函数
 void BorderCheck(int *x,int *y);	//1 边界检测

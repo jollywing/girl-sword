@@ -180,13 +180,22 @@ bool CScript::Expression()
 
 }
 
-void CScript::GotoBranchEnd()
+// return 0 when success, return -1 when fail
+char CScript::GotoBranchEnd()
 {
     short nested = 0;	//防止if的嵌套
     char szCommand[SCRIPT_CMD_LEN];
     while(1)
     {
         ++ nCurrentLine;
+        if(nCurrentLine >= nScriptLineNumber){
+            while(!branchStack.empty())
+                branchStack.pop();
+            stateStack.pop(); // exit state of running scripts
+            show_dialog("There must be some error with your script!");
+            return -1;
+        }
+
         nIndexInCurLine = 0;
         ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand);
         if (!strcmp(szCommand, "IF"))
@@ -199,15 +208,24 @@ void CScript::GotoBranchEnd()
         }
     }
     --nCurrentLine;
+    return 0;
 }
   
-void CScript::GotoNextBranch()
+char CScript::GotoNextBranch()
 {
     short nested = 0;	//防止if的嵌套
     char szCommand[SCRIPT_CMD_LEN];
     while(1)
     {
         ++ nCurrentLine;
+        if(nCurrentLine >= nScriptLineNumber){
+            while(!branchStack.empty())
+                branchStack.pop();
+            stateStack.pop(); // exit state of running scripts
+            show_dialog("There must be some error with your script!");
+            return -1;
+        }
+
         nIndexInCurLine = 0;
         ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand);
         if (!strcmp(szCommand, "IF"))
@@ -225,6 +243,7 @@ void CScript::GotoNextBranch()
         }
     }
     --nCurrentLine;
+    return 0;
 }
 
 /* 执行一条脚本语句 */
@@ -244,8 +263,8 @@ void CScript::ExecuteScriptLine()
 	//格式：	RETURN
 	if ( ! strcmp( szCommand, "RETURN") )
 	{
-		//Flag = MAIN_MOVE_;
-        // Flag = oldFlag;
+        while(!branchStack.empty())
+            branchStack.pop();
         stateStack.pop();
 		return;
 	}
@@ -258,7 +277,7 @@ void CScript::ExecuteScriptLine()
             branchStack.push(1);
         else {
             branchStack.push(0);
-            GotoNextBranch(); 
+            GotoNextBranch();
         }
     }
 

@@ -9,7 +9,7 @@ Dialog::Dialog()
 	Height = 60;
 	Width = 300;
 	cHeight = 20;
-	count_in_row = 48;
+	count_in_row = 51;
 	cX = 20;
 	cY = 10;
 	num_row = 2;
@@ -70,7 +70,19 @@ void Dialog::show(SDL_Surface *dest_surf)
 		memset(temp, 0, 100);
 		for(short j=0; j<count_in_row; j++)
 		{
-			if (Words[num] == '\0')
+            // avoid utf-8 chinese char is splited foolishly.
+            if (Words[num] < 0) { // it is first byte of a utf-8 chinese char.
+                if (j + 2 >= count_in_row)
+                    break;
+                else {
+                    temp[j] = Words[num];
+                    temp[j+1] = Words[num+1];
+                    temp[j+2] = Words[num+2];
+                    j += 2;
+                    num += 3;
+                }
+            }
+			else if (Words[num] == '\0')
 			{
 				i = num_row - 1;
 				break;
