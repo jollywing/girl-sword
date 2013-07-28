@@ -8,10 +8,13 @@
 #include "Girl.h"
 #include "Dialog.h"
 #include "Fighter.h"
+#include <stack>
 
 using namespace std;
 
 CScript * g_script;
+
+static stack<char> branchStack;
 
 void RunScripts(const char * szName )
 {
@@ -83,8 +86,8 @@ short CScript::GetRecordNum()
 
 void CScript::LoadScripts()
 {
-	char szTemp[ 1024 ];
-	char szName[32];
+	char szTemp[SCRIPT_LINE_LEN];
+	char szName[SCRIPT_NAME_LEN];
 	short nScriptsIndex = 0;
 //	short nValidLineIndex = -1;
 	//short nLineNumber = 0;
@@ -155,14 +158,14 @@ void CScript::RunScripts(char * szName )
 
 bool CScript::Expression()
 {
-	char szLHS[32];
+	char szLHS[SCRIPT_VAR_BUF_LEN];
 	ReadSubString( pScripts[nCurrentLine].szScriptLine, szLHS);
 	short nLHS = GetVariableValue(szLHS);
 
-	char szOP[8];
+	char szOP[SCRIPT_NUM_BUF_LEN];
 	ReadSubString( pScripts[nCurrentLine].szScriptLine, szOP);
 
-	char szRHS[32];
+	char szRHS[SCRIPT_VAR_BUF_LEN];
 	ReadSubString( pScripts[nCurrentLine].szScriptLine, szRHS);
 	short nRHS = atoi(szRHS);
 
@@ -177,6 +180,53 @@ bool CScript::Expression()
 
 }
 
+void CScript::GotoBranchEnd()
+{
+    short nested = 0;	//防止if的嵌套
+    char szCommand[SCRIPT_CMD_LEN];
+    while(1)
+    {
+        ++ nCurrentLine;
+        nIndexInCurLine = 0;
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand);
+        if (!strcmp(szCommand, "IF"))
+            nested +=1;
+        else if (!strcmp(szCommand, "ENDIF") )
+        {
+            if(nested > 0)
+                nested -= 1;
+            else break;
+        }
+    }
+    --nCurrentLine;
+}
+  
+void CScript::GotoNextBranch()
+{
+    short nested = 0;	//防止if的嵌套
+    char szCommand[SCRIPT_CMD_LEN];
+    while(1)
+    {
+        ++ nCurrentLine;
+        nIndexInCurLine = 0;
+        ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand);
+        if (!strcmp(szCommand, "IF"))
+            nested +=1;
+        else if (!strcmp(szCommand, "ENDIF") )
+        {
+            if(nested > 0)
+                nested -= 1;
+            else break;
+        }
+        else if( !strcmp(szCommand, "ELSEIF") ||
+                 !strcmp(szCommand, "ELSE")) 
+        {
+            if (nested == 0)	break;
+        }
+    }
+    --nCurrentLine;
+}
+
 /* 执行一条脚本语句 */
 void CScript::ExecuteScriptLine()
 {
@@ -185,11 +235,11 @@ void CScript::ExecuteScriptLine()
 	nIndexInCurLine = 0;
 
 	// 读取命令
-	char szCommand[ 32 ];
+	char szCommand[SCRIPT_CMD_LEN];
 	ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand );
 
-	char szStringBuffer[256];
-	char szNumberBuffer[4];
+	char szStringBuffer[SCRIPT_LINE_LEN];
+	char szNumberBuffer[SCRIPT_NUM_BUF_LEN];
 
 	//格式：	RETURN
 	if ( ! strcmp( szCommand, "RETURN") )
@@ -203,33 +253,35 @@ void CScript::ExecuteScriptLine()
 	//格式：	IF variable value
 	//			...
 	//			ENDIF
-	else if ( ! strcmp( szCommand, "IF")
-			|| !strcmp(szCommand, "ELSEIF"))
+	else if ( !strcmp(szCommand, "IF")){
+        if (Expression())
+            branchStack.push(1);
+        else {
+            branchStack.push(0);
+            GotoNextBranch(); 
+        }
+    }
+
+    else if (!strcmp(szCommand, "ELSEIF"))
 	{
-		
-		if ( !Expression() ){	//条件不成立则跳转
-			short nested = 0;	//防止if的嵌套
-			while(1)
-			{
-				++ nCurrentLine;
-				nIndexInCurLine = 0;
-				ReadSubString( pScripts[nCurrentLine].szScriptLine, szCommand);
-				if (!strcmp(szCommand, "IF"))
-					nested +=1;
-				else if (!strcmp(szCommand, "ENDIF") )
-				{
-					if(nested > 0)
-						nested -= 1;
-					else break;
-				}
-				else if( !strcmp(szCommand, "ELSEIF"))
-				{
-					if (!nested)	break;
-				}
-			}
-			--nCurrentLine;
-		}		
+        if(branchStack.top())
+            GotoBranchEnd();
+        else if(Expression()){
+            branchStack.pop();
+            branchStack.push(1);
+        }
+        else
+            GotoNextBranch();
 	}
+
+    else if (!strcmp(szCommand, "ELSE"))
+	{
+        if(branchStack.top())
+            GotoBranchEnd();
+	}
+
+    else if (!strcmp(szCommand, "ENDIF"))
+        branchStack.pop();
 
 	//格式：	GOTO scriptname
 	else if(! strcmp(szCommand, "GOTO"))
@@ -329,7 +381,7 @@ void CScript::ExecuteScriptLine()
         stateStack.push(GAME_MESSAGE_);
 		common_diag.set_text(temp);
 		common_diag.show(screen);
-        StartFight();
+        InitFight();
 		// FlipPage();
 		// oldFlag = Flag;	//保存执行脚本的状态
 		// Flag = FIGHT_START_;		
@@ -496,7 +548,12 @@ void CScript::ExecuteScriptLine()
 void CScript::ReadSubString(char * stString, char * stSubString )
 {
 	short nIndex = 0;
-	
+
+    if(nIndexInCurLine >= strlen(stString)){
+        strcpy(stSubString, "");
+        return;
+    }
+
 	//ignore space before valid char
 	while( stString[ nIndexInCurLine ] == ' ' || stString [ nIndexInCurLine ] == '\t')
 	{
@@ -504,7 +561,7 @@ void CScript::ReadSubString(char * stString, char * stSubString )
 	}
 	
 	//read sub string
-	while ( nIndexInCurLine < ( short )strlen(stString) )
+	while ( nIndexInCurLine < (short)strlen(stString) )
 	{
 		if ( stString[ nIndexInCurLine] == ' ' || 
 			stString[ nIndexInCurLine ] == '\t')

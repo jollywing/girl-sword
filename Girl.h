@@ -12,92 +12,97 @@
 
 using namespace std;
 
-//ÓÎÏ·ÔËĞĞ×´Ì¬µÄºê¶¨Òå
-#define GAME_LOAD_	0	//ÓÎÏ·Êı¾İ×°ÔØ
-#define GAME_TITLE_	1	//ÓÎÏ·¿ªÊ¼»­Ãæ
-#define MAIN_MOVE_	2	//ÓÉÍæ¼Ò¿ØÖÆÖ÷½Ç
-#define READ_RECORD_	3	//¶ÁÈ¡¼ÍÂ¼
-#define GAME_EXIT_	4	//ÕıÔÚÍË³öÓÎÏ·
-#define SYSTEM_MENU_	5	//ÓÎÏ·¹ı³ÌÖĞµ÷³öÏµÍ³²Ëµ¥
-#define WRITE_RECORD_	6	//´æĞ´¼ÍÂ¼
-#define GAME_MESSAGE_	7	//ÏµÍ³ÏûÏ¢
-#define FIGHT_START_	8	//Õ½¶·¿ªÊ¼
-#define FIGHTING_	9	//Õ½¶·½øĞĞ
-#define FIGHT_END_	10	//Õ½¶·½áÊø
-#define AUTO_PLAY_	11	//×Ô¶¯¾çÇé
-#define TREAT_NPC_	12	//´¦ÀíNPCÊÂ¼ş
-#define BEFORE_SELECT_	13	//µ¯³öµÈ´ıÍæ¼ÒÑ¡Ôñ´ğ°¸µÄÒ³Ãæ
-#define WAIT_SELECT_	14	//µÈ´ıÍæ¼Ò×ö³öÑ¡Ôñ
-#define	SELECT_YES_		15	//Íæ¼Ò×ö³öÊÇµÄÑ¡Ôñ
-#define SELECT_NO_		16	//Íæ¼Ò×ö³ö·ñµÄÑ¡Ôñ
-#define CHECK_STATE_	17	//²é¿´×´Ì¬
-#define CHECK_ABOUT_	18	//²é¿´×÷Æ·ĞÅÏ¢
-#define RUN_SCRIPT_     19  //ÔËĞĞ½Å±¾
-#define NPC_MOVE_		20	//ÒÆ¶¯NPC
+//æ¸¸æˆè¿è¡ŒçŠ¶æ€çš„å®å®šä¹‰
+#define GAME_LOAD_	0	//æ¸¸æˆæ•°æ®è£…è½½
+#define GAME_TITLE_	1	//æ¸¸æˆå¼€å§‹ç”»é¢
+#define MAIN_MOVE_	2	//ç”±ç©å®¶æ§åˆ¶ä¸»è§’
+#define READ_RECORD_	3	//è¯»å–çºªå½•
+#define GAME_EXIT_	4	//æ­£åœ¨é€€å‡ºæ¸¸æˆ
+#define SYSTEM_MENU_	5	//æ¸¸æˆè¿‡ç¨‹ä¸­è°ƒå‡ºç³»ç»Ÿèœå•
+#define WRITE_RECORD_	6	//å­˜å†™çºªå½•
+#define GAME_MESSAGE_	7	//ç³»ç»Ÿæ¶ˆæ¯
+#define FIGHT_START_	8	//æˆ˜æ–—å¼€å§‹
+#define FIGHTING_	9	//æˆ˜æ–—è¿›è¡Œ
+#define FIGHT_END_	10	//æˆ˜æ–—ç»“æŸ
+#define AUTO_PLAY_	11	//è‡ªåŠ¨å‰§æƒ…
+#define TREAT_NPC_	12	//å¤„ç†NPCäº‹ä»¶
+#define BEFORE_SELECT_	13	//å¼¹å‡ºç­‰å¾…ç©å®¶é€‰æ‹©ç­”æ¡ˆçš„é¡µé¢
+#define WAIT_SELECT_	14	//ç­‰å¾…ç©å®¶åšå‡ºé€‰æ‹©
+#define	SELECT_YES_		15	//ç©å®¶åšå‡ºæ˜¯çš„é€‰æ‹©
+#define SELECT_NO_		16	//ç©å®¶åšå‡ºå¦çš„é€‰æ‹©
+#define CHECK_STATE_	17	//æŸ¥çœ‹çŠ¶æ€
+#define CHECK_ABOUT_	18	//æŸ¥çœ‹ä½œå“ä¿¡æ¯
+#define RUN_SCRIPT_     19  //è¿è¡Œè„šæœ¬
+#define NPC_MOVE_		20	//ç§»åŠ¨NPC
 
 // extern short Flag, oldFlag;
 extern stack<int> stateStack;
 
-//**************************º¯ÊıÉùÃ÷**********************************
+//**************************å‡½æ•°å£°æ˜**********************************
 
-//ºÍÓÎÏ·×´Ì¬¶ÔÓ¦µÄº¯Êı
-void MainLoop();	//0 ÓÎÏ·Ö÷Ñ­»·
-void InitGame();	//1 ÓÎÏ·³õÊ¼»¯
-void MainMove();	//2 Ö÷½ÇÔÚµØÍ¼×ß¶¯µÄº¯Êı
-void StartFight();	//3 ¿ªÊ¼Õ½¶·
-void Fighting();	//4	Õ½¶·ÖĞ
-void FightEnd();	//5 Õ½¶·½áÊø
-// void TreatNpc();	//6 ´¦ÀíNpcÊÂ¼ş
+//å’Œæ¸¸æˆçŠ¶æ€å¯¹åº”çš„å‡½æ•°
+void MainLoop();	//0 æ¸¸æˆä¸»å¾ªç¯
+void InitGame();	//1 æ¸¸æˆåˆå§‹åŒ–
+void MainMove();	//2 ä¸»è§’åœ¨åœ°å›¾èµ°åŠ¨çš„å‡½æ•°
+void InitFight();	//3 åˆå§‹åŒ–æˆ˜æ–—
+void Fighting();	//4	æˆ˜æ–—ä¸­
+void fight_win();
+void fight_fail();
+
+// void FightEnd();	//5 æˆ˜æ–—ç»“æŸ
+// void TreatNpc();	//6 å¤„ç†Npcäº‹ä»¶
 void GameTitle();	//7
-void GameExit();	//8 ÓÎÏ·ÍË³ö
-void System_Menu();	//9 ÓÎÏ·¹ı³ÌÖĞµ÷³öÏµÍ³²Ëµ¥
-void GameMessage();	//10 ÓÎÏ·¹ı³ÌÖĞÏÔÊ¾ÏûÏ¢
-void AutoPlay();	//11 ×Ô¶¯¾çÇé
-void Load();	//12 ×°ÔØµµ°¸
-void Store();	//13 ´æ´¢µµ°¸	
-void BeforeSelect();	//14 µ¯³öÍæ¼ÒÑ¡ÔñµÄ²Ëµ¥
-void WaitSelect();	//15 µÈ´ıÍæ¼ÒÑ¡Ôñ
-void SelectYes();	//16 Íæ¼Ò×ö³öÊÇµÄÑ¡Ôñ
-void SelectNo();	//17 Íæ¼Ò×ö³ö·ñµÄÑ¡Ôñ
-void CheckState();	//18 ²é¿´Íæ¼Ò×´Ì¬
-void CheckAbout();	//19 ²é¿´×÷Æ·ĞÅÏ¢
+void GameExit();	//8 æ¸¸æˆé€€å‡º
+void System_Menu();	//9 æ¸¸æˆè¿‡ç¨‹ä¸­è°ƒå‡ºç³»ç»Ÿèœå•
+void GameMessage();	//10 æ¸¸æˆè¿‡ç¨‹ä¸­æ˜¾ç¤ºæ¶ˆæ¯
+void AutoPlay();	//11 è‡ªåŠ¨å‰§æƒ…
+void Load();	//12 è£…è½½æ¡£æ¡ˆ
+void Store();	//13 å­˜å‚¨æ¡£æ¡ˆ	
+// void BeforeSelect();	//14 å¼¹å‡ºç©å®¶é€‰æ‹©çš„èœå•
+void WaitSelect();	//15 ç­‰å¾…ç©å®¶é€‰æ‹©
+// void SelectYes();	//16 ç©å®¶åšå‡ºæ˜¯çš„é€‰æ‹©
+// void SelectNo();	//17 ç©å®¶åšå‡ºå¦çš„é€‰æ‹©
+// void CheckState();	//18 æŸ¥çœ‹ç©å®¶çŠ¶æ€
+// void CheckAbout();	//19 æŸ¥çœ‹ä½œå“ä¿¡æ¯
 
-//¸üĞÂÓÎÏ·»­Ãæº¯Êı
-void DrawState();		//1 »­Ö÷½ÇµÄ×´Ì¬
-void DrawStateDetail();	//2 ÏÔÊ¾ÏêÏ¸×´Ì¬ĞÅÏ¢
-void DrawStartMenu();	//3 »­¿ªÊ¼²Ëµ¥
-void DrawSystemMenu();	//4 »­ÏµÍ³²Ëµ¥
-void DrawSelectMenu();	//5 »­Ñ¡Ôñ²Ëµ¥
-void DrawRecord();		//6 »­¼ÍÂ¼
-void RefreshCanvas();	//7 ¸üĞÂ·ÇÕ½¶·»­Ãæ
-void UpdateFight();		//8 ¸üĞÂÕ½¶·»­Ãæ
-void DrawRoundNum();	//9 »­Õ½¶·»ØºÏÊı
-void ClrScr();			//10 ÇåÆÁ
-void DrawPic(const char *);	//11 ÔÚÆÁÄ»ÉÏÏÔÊ¾Í¼Æ¬
-void ShowAbout();		//12 ÏÔÊ¾×÷Æ·µÄĞÅÏ¢	
-// void FlipPage();		//13 ½«ÀëÆÁÒ³ÃæµÄÄÚÈİ´«ËÍµ½Ö÷Ò³Ãæ
-void DrawTitle();		//14 ÔÚÀëÆÁÒ³ÃæÉÏ»­Æ¬Í·
-void DrawEnd();			//15 »­Æ¬Î²
+//æ›´æ–°æ¸¸æˆç”»é¢å‡½æ•°
+void DrawState();		//1 ç”»ä¸»è§’çš„çŠ¶æ€
+void DrawStateDetail();	//2 æ˜¾ç¤ºè¯¦ç»†çŠ¶æ€ä¿¡æ¯
+void DrawStartMenu();	//3 ç”»å¼€å§‹èœå•
+void DrawSystemMenu();	//4 ç”»ç³»ç»Ÿèœå•
+void DrawSelectMenu();	//5 ç”»é€‰æ‹©èœå•
+void DrawRecord();		//6 ç”»çºªå½•
+void RefreshCanvas();	//7 æ›´æ–°éæˆ˜æ–—ç”»é¢
+void UpdateFight();		//8 æ›´æ–°æˆ˜æ–—ç”»é¢
+void DrawRoundNum();	//9 ç”»æˆ˜æ–—å›åˆæ•°
+void ClrScr();			//10 æ¸…å±
+void DrawPic(const char *);	//11 åœ¨å±å¹•ä¸Šæ˜¾ç¤ºå›¾ç‰‡
+void ShowAbout();		//12 æ˜¾ç¤ºä½œå“çš„ä¿¡æ¯	
+// void FlipPage();		//13 å°†ç¦»å±é¡µé¢çš„å†…å®¹ä¼ é€åˆ°ä¸»é¡µé¢
+void DrawTitle();		//14 åœ¨ç¦»å±é¡µé¢ä¸Šç”»ç‰‡å¤´
+void DrawEnd();			//15 ç”»ç‰‡å°¾
 
-//ÓÎÏ·¸¨Öúº¯Êı
-void BorderCheck(int *x,int *y);	//1 ±ß½ç¼ì²â
-short CrushCheck();					//2 Åö×²¼ì²â
-void SceneChange();					//3 ³¡¾°ÇĞ»»º¯Êı
-void QueryMessage(short);			//4 ÏìÓ¦Íæ¼ÒÔÚÌØ¶¨µØµã°´ÏÂ¿Õ¸ñÊÂ¼ş
-Role * FindNpc();					//5 Ñ°ÕÒÍæ¼ÒÃæ¶ÔµÄNpc,·µ»ØNpcµÄID
-void GetMapbyID(int);				//6 Í¨¹ıµØÍ¼ID£¬¸Ä±äcurrent_map
-Role * GetNpcbyID(int);				//7 µÃµ½npcµÄÖ¸Õë
-void RelayoutNpc();					//8 ÇĞ»»µØÍ¼Ê±£¬ÖØĞÂ¼ÓÔØNPC
-void GotoMap(Map *);				//9 Ö÷½Ç×ßµ½ĞÂµÄµØÍ¼
-//void PressKey(DWORD key);			//10µÈ´ı°´¼üËÉ¿ª
+//æ¸¸æˆè¾…åŠ©å‡½æ•°
+void BorderCheck(int *x,int *y);	//1 è¾¹ç•Œæ£€æµ‹
+short CrushCheck();					//2 ç¢°æ’æ£€æµ‹
+void SceneChange();					//3 åœºæ™¯åˆ‡æ¢å‡½æ•°
+void QueryMessage(short);			//4 å“åº”ç©å®¶åœ¨ç‰¹å®šåœ°ç‚¹æŒ‰ä¸‹ç©ºæ ¼äº‹ä»¶
+Role * FindNpc();					//5 å¯»æ‰¾ç©å®¶é¢å¯¹çš„Npc,è¿”å›Npcçš„ID
+void GetMapbyID(int);				//6 é€šè¿‡åœ°å›¾IDï¼Œæ”¹å˜current_map
+Role * GetNpcbyID(int);				//7 å¾—åˆ°npcçš„æŒ‡é’ˆ
+void RelayoutNpc();					//8 åˆ‡æ¢åœ°å›¾æ—¶ï¼Œé‡æ–°åŠ è½½NPC
+void GotoMap(Map *);				//9 ä¸»è§’èµ°åˆ°æ–°çš„åœ°å›¾
+//void PressKey(DWORD key);			//10ç­‰å¾…æŒ‰é”®æ¾å¼€
 void MoveNpc();
 
 void WaitKeyRelease();
+void wait_any_key_press();
 
-//²Ù×÷ÓÎÏ·Êı¾İº¯Êı
-void InitData();					//1 ³õÊ¼»¯Êı¾İ
-short LoadData(char *);				//2 ¶ÁÈ¡Êı¾İ
-short StoreData(char *);				//3 ´æ´¢Êı¾İ
+
+//æ“ä½œæ¸¸æˆæ•°æ®å‡½æ•°
+void InitData();					//1 åˆå§‹åŒ–æ•°æ®
+short LoadData(char *);				//2 è¯»å–æ•°æ®
+short StoreData(char *);				//3 å­˜å‚¨æ•°æ®
 
 
 
