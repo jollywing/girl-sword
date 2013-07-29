@@ -31,31 +31,33 @@ short round_num;	//回合数
 short game_running;
 stack<int> stateStack;
 
-MenuFlag g_menuFlag;
+MenuFlag g_menuFlag, g_oldMenuFlag;
+RwFlag g_rwFlag;
+
 
 //****************************应用程序函数******************************* 
 
 //程序入口函数
 int main(int argc, char ** argv)
 {
-    int windowed = 0;
+    int windowed = 1;
     if(argc >1){
         if( strcmp(argv[1], "-h") == 0){
-            printf("This is a chinese RPG for Linux. Version: 0.9\n");
-            printf("The program runs in fullscreen by default;\n");
-            printf("You can run it in a window by adding an option: -w\n");
+            printf("This is a chinese RPG for Linux. Version: 1.7\n");
+            printf("The program runs in window by default;\n");
+            printf("You can run it in full screen by adding an option: -x\n");
             printf("Have Fun!!!\n");
             return 0;
         }
-        if( strcmp(argv[1], "-w") == 0)
-            windowed = 1;
+        if( strcmp(argv[1], "-x") == 0)
+            windowed = 0;
     }
 
     SDL_Event event;
 	//SCR_X = 100;	//定义绘图窗口在屏幕中位置
 	//SCR_Y = 100;
 
-    InitSDL( windowed );
+    InitSDL(windowed);
     OpenFonts();
     InitAudio();
 
@@ -117,12 +119,6 @@ void MainLoop()
 	case FIGHTING_:		//8
 		Fighting();
 		break;
-	case READ_RECORD_:	//4
-		Load();
-		break;
-	case WRITE_RECORD_:	//5
-		Store();
-		break;
 	case AUTO_PLAY_:	//10
 		AutoPlay();
 		break;
@@ -174,15 +170,53 @@ void new_game()
 
 void start_load_game()
 {
-    DrawRecord();
     stateStack.pop();
-    stateStack.push(READ_RECORD_);
+    g_oldMenuFlag = g_menuFlag;
+    g_menuFlag = RECORD_MENU;
+    g_rwFlag = READ_RECORD;
+    stateStack.push(GAME_MENU_);
 }
 
 void start_save_game()
 {
-    DrawRecord();
-    stateStack.push(WRITE_RECORD_);
+    stateStack.pop();
+    g_oldMenuFlag = g_menuFlag;
+    g_menuFlag = RECORD_MENU;
+    g_rwFlag = WRITE_RECORD;
+    stateStack.push(GAME_MENU_);
+}
+
+void read_or_write_record()
+{
+    short selected;
+    char filePath[256];
+
+    selected = get_selected_menu(g_recordMenus, RECORD_MENU_NUM);
+    sprintf(filePath, "save/%d.sav", selected + 1);
+
+    ClrScr();
+    // SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
+    SDL_Flip(screen);
+
+    stateStack.pop();
+    if(g_rwFlag == READ_RECORD){
+        if(LoadData(filePath)) { // read failed
+            show_dialog("读取进度失败，或是记录不存在，或是旧版本的记录！");
+        }
+        else {
+			GetMapbyID(Aqing.MapID);
+			RelayoutNpc();
+            show_dialog("读取成功！");
+        }
+    }
+    else { // write record
+        if(StoreData(filePath)) { // write failed
+            show_dialog("存档失败，检查save目录是否存在！");
+        }
+        else {
+            show_dialog("存档成功！");
+        }
+    }
 }
 
 void check_game_info()
@@ -351,6 +385,11 @@ void game_menu()
         menus = g_selectMenus;
         menuNum = SELECT_MENU_NUM;
         draw_menu_group(menus, menuNum, screen);
+        break;
+    case RECORD_MENU:
+        menus = g_recordMenus;
+        menuNum = RECORD_MENU_NUM;
+        draw_menu_group(menus, menuNum, screen);
     }
     SDL_Flip(screen);
 
@@ -362,6 +401,8 @@ void game_menu()
                 exit_game();
             else if(g_menuFlag == SYSTEM_MENU)
                 stateStack.pop();
+            else if(g_menuFlag == RECORD_MENU)
+                g_menuFlag = g_oldMenuFlag;
             break;
         case SDLK_SPACE:
         case SDLK_RETURN:
@@ -584,186 +625,6 @@ void GameExit()
     //counter --;
 }
 
-
-//读取进度函数
-void Load()
-{
-    Uint8 *keys = SDL_GetKeyState(NULL);
-
-	if(keys[SDLK_ESCAPE])
-	{
-		//PressKey(VK_ESCAPE);
-        WaitKeyRelease();
-		RefreshCanvas();
-		DrawSystemMenu();
-		//FlipPage();
-        stateStack.pop();
-		// Flag = SYSTEM_MENU_;
-		return;
-	}
-
-	//得到被选中的菜单的索引
-	short selected;
-	for(int i = 0; i < 3; i++)
-	{
-		if (GameRecord[i].Selected)
-		{
-			selected = i;
-			break;
-		}
-	}
-
-	if(	keys[SDLK_SPACE])
-	{
-		//PressKey(VK_SPACE);
-		//play_sound("voc\\PushButton.wav");
-        PlayWavSound(SELECT);
-        SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
-		
-		if(LoadData(GameRecord[selected].Location ))
-		{
-            g_dialog.set_text("读取进度失败，或是记录不存在，或是旧版本的记录！");
-            g_dialog.show(screen);
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-			// RefreshCanvas();
-			// DrawSystemMenu();
-            // stateStack.pop();
-			// Flag = SYSTEM_MENU_;
-		}
-		else
-		{
-            RefreshCanvas();
-            g_dialog.set_text("读取成功！");
-            g_dialog.show(screen);
-			GetMapbyID(Aqing.MapID);
-			RelayoutNpc();
-			stateStack.pop();
-            if (stateStack.top() == SYSTEM_MENU_)
-                stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-		}
-		return;
-	}
-
-
-	
-	if(keys[SDLK_DOWN])
-	{
-		//PressKey(VK_DOWN);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		GameRecord[selected].Selected  = 0;
-		selected++;
-		if (selected >= 3)
-			selected = selected%3;
-		GameRecord[selected].Selected  = 1;
-		DrawRecord();
-		//FlipPage();
-	}
-	else if(keys[SDLK_UP])
-	{
-		//PressKey(VK_UP);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		GameRecord[selected].Selected  = 0;
-		selected--;
-		if(selected <0)
-			selected = 2;
-		GameRecord[selected].Selected  = 1;
-		DrawRecord();
-		//FlipPage();
-	}
-}
-
-//存储进度函数
-void Store()
-{
-    Uint8 *keys = SDL_GetKeyState(NULL);
-
-	if(keys[SDLK_ESCAPE])
-	{
-		//PressKey(VK_ESCAPE);
-        WaitKeyRelease();
-		RefreshCanvas();
-		DrawSystemMenu();
-        stateStack.pop();
-		// Flag = SYSTEM_MENU_;
-		return;
-	}
-
-	//得到被选中的菜单的索引
-	short selected;
-	for(int i = 0; i < 3; i++)
-	{
-		if (GameRecord[i].Selected)
-		{
-			selected = i;
-			break;
-		}
-	}
-
-	if(	keys[SDLK_SPACE])
-	{
-		//PressKey(VK_SPACE);
-		//play_sound("voc\\PushButton.wav");
-        PlayWavSound(SELECT);
-        SDL_BlitText("请稍侯。。。", screen, 200, 150, message_font, message_color);
-		
-		if(StoreData(GameRecord[selected].Location))
-		{
-			RefreshCanvas();
-			DrawSystemMenu();
-            g_dialog.set_text("存档失败，检查save目录是否存在！");
-            g_dialog.show(screen);
-            stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-			// Flag = SYSTEM_MENU_;
-		}
-		else
-		{
-			RefreshCanvas();
-			g_dialog.set_text("存档成功！");
-			g_dialog.show(screen);
-	        stateStack.pop();
-            stateStack.push(GAME_MESSAGE_);
-		}
-		return;
-	}
-
-	if(keys[SDLK_DOWN])
-	{
-		//PressKey(VK_DOWN);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		GameRecord[selected].Selected  = 0;
-		selected++;
-		if (selected >= 3)
-			selected = selected % 3;
-		GameRecord[selected].Selected  = 1;
-		DrawRecord();
-		//FlipPage();
-	}
-	else if(keys[SDLK_UP])
-	{
-		//PressKey(VK_UP);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		GameRecord[selected].Selected  = 0;
-		selected--;
-		if(selected <0)
-			selected = 2;
-		GameRecord[selected].Selected  = 1;
-		DrawRecord();
-		//FlipPage();
-	}
-	
-}
-
 //查看作品信息
 void wait_any_key_press()
 {
@@ -779,21 +640,11 @@ void wait_any_key_press()
 
 //*************************更新游戏画面函数**********************************
 
-//换页
-//void //FlipPage()
-//{
-//	lpDDPrimary->BltFast(SCR_X, SCR_Y, screen, NULL, DDBLTFAST_WAIT);
-//}
-
 //清屏
-void ClrScr()
-{
-	// DDBLTFX fx;
-	// fx.dwSize = sizeof(fx);
-	// fx.dwFillColor = RGB(0,0,0);
-	// screen->Blt (NULL,NULL,NULL,DDBLT_WAIT|DDBLT_COLORFILL,&fx);
-    SDL_FillRect(screen, NULL, 0);
-}
+// inline void ClrScr()
+// {
+//     SDL_FillRect(screen, NULL, 0);
+// }
 
 //更新非战斗画面
 void RefreshCanvas()
@@ -848,13 +699,6 @@ void DrawSystemMenu()
     draw_menu_group(g_sysMenus, SYS_MENU_NUM, screen);
 }
 
-//画纪录
-void DrawRecord()
-{
-	GameRecord[0].draw_record (screen);
-	GameRecord[1].draw_record (screen);
-	GameRecord[2].draw_record (screen);
-}
 
 //画片头
 void DrawTitle()
@@ -1197,14 +1041,6 @@ void SceneChange( )
 	}
 }
 
-//按下键后松开函数
-//void PressKey(DWORD key)
-//{
-//	while(GetAsyncKeyState(key))
-//	{
-//	}
-//}
-
 void WaitKeyRelease()
 {
   SDL_Event e;
@@ -1301,9 +1137,6 @@ Role * FindNpc()	//寻找玩家面对的npc
 }
 
 
-//*******************************************************************
-
-
 
 //*****************************游戏数据函数*******************************************
 
@@ -1314,17 +1147,10 @@ void InitData()
     init_start_menus();
     init_system_menus();
     init_select_menus();
+    init_record_menus();
 
 	//初始化对话框
 	g_dialog.set_dlg(dlg, dlg_font, dlg_color);
-
-	//初始化存档
-	GameRecord[0].set_record (160,220,90,25,"存档一",
-		"save/1.sav",1,g_menuSurface, g_menuFont, &g_menuColor);
-	GameRecord[1].set_record (160,245,90,25,"存档二",
-		"save/2.sav",0,g_menuSurface, g_menuFont, &g_menuColor);
-	GameRecord[2].set_record (160,270,90,25,"存档三",
-		"save/3.sav",0,g_menuSurface, g_menuFont, &g_menuColor);
     
     InitMaps();
     InitRoles();
@@ -1417,9 +1243,6 @@ short LoadData( char * path)
 		}
 	}
 
-	//读取地图NPC数据
-	// for(i =0; i< 15; i++)
-	// {
     fread(&Map_aqing.Npcs, sizeof(int), 15, fp);		//1
     fread(&Map_shaoxing.Npcs, sizeof(int), 15, fp);	//2
     fread(&Map_citydoor.Npcs, sizeof(int), 15, fp);	//3
@@ -1429,22 +1252,6 @@ short LoadData( char * path)
     fread(&Map_Wuguo.Npcs, sizeof(int), 15, fp);		//7
     fread(&Map_Gongdian.Npcs, sizeof(int), 15, fp);	//8
     fread(&Map_Xiangfang.Npcs, sizeof(int), 15, fp);	//9
-	// }
-
-	//读取剧情标志数据
-	// fread(&asked_by_fanli, sizeof(short), 1, fp);	//1
-	// fread(&asked_to_house, sizeof(short), 1, fp);	//2
-	// fread(&see_jianke, sizeof(short), 1, fp);	//3
-	// fread(&get_key, sizeof(short), 1, fp);		//4
-	// fread(&defeat_feitu, sizeof(short), 1, fp);	//5
-	// fread(&defeat_shangping, sizeof(short), 1, fp);	//6
-	// fread(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
-	// fread(&see_yehaizi, sizeof(short), 1, fp);		//8
-	// fread(&defeat_yehaizi, sizeof(short), 1, fp);	//9
-	// fread(&defeat_jianke, sizeof(short), 1, fp);		//10
-	// fread(&ask_where_fanli, sizeof(short), 1, fp);		//11
-	// fread(&really_defeat_jianke, sizeof(short), 1, fp);	//12
-	// fread(&defeat_shiwei, sizeof(short), 1, fp);	//13
 
     fread(vars, sizeof(stVariable), VAR_NUMBER, fp);
 
@@ -1504,9 +1311,6 @@ short StoreData(char * path)
 		}
 	}
 
-	//存储地图NPC数据
-	// for(i =0; i< 15; i++)
-	// {
     fwrite(&Map_aqing.Npcs, sizeof(int), 15, fp);		//1
     fwrite(&Map_shaoxing.Npcs, sizeof(int), 15, fp);	//2
     fwrite(&Map_citydoor.Npcs, sizeof(int), 15, fp);	//3
@@ -1516,22 +1320,6 @@ short StoreData(char * path)
     fwrite(&Map_Wuguo.Npcs, sizeof(int), 15, fp);		//7
     fwrite(&Map_Gongdian.Npcs, sizeof(int), 15, fp);	//8
     fwrite(&Map_Xiangfang.Npcs, sizeof(int), 15, fp);	//9
-	// }
-
-	//存储剧情标志数据
-	// fwrite(&asked_by_fanli, sizeof(short), 1, fp);	//1
-	// fwrite(&asked_to_house, sizeof(short), 1, fp);	//2
-	// fwrite(&see_jianke, sizeof(short), 1, fp);	//3
-	// fwrite(&get_key, sizeof(short), 1, fp);		//4
-	// fwrite(&defeat_feitu, sizeof(short), 1, fp);	//5
-	// fwrite(&defeat_shangping, sizeof(short), 1, fp);	//6
-	// fwrite(&ask_to_caoyuan, sizeof(short), 1, fp);	//7
-	// fwrite(&see_yehaizi, sizeof(short), 1, fp);		//8
-	// fwrite(&defeat_yehaizi, sizeof(short), 1, fp);	//9
-	// fwrite(&defeat_jianke, sizeof(short), 1, fp);		//10
-	// fwrite(&ask_where_fanli, sizeof(short), 1, fp);		//11
-	// fwrite(&really_defeat_jianke, sizeof(short), 1, fp);	//12
-	// fwrite(&defeat_shiwei, sizeof(short), 1, fp);	//13
 		
     fwrite(vars, sizeof(stVariable), VAR_NUMBER, fp);
 	//关闭文件

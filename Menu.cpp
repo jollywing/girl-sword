@@ -6,6 +6,7 @@
 Menu g_startMenus[START_MENU_NUM];	//开始菜单
 Menu g_sysMenus[SYS_MENU_NUM];	//系统菜单
 Menu g_selectMenus[SELECT_MENU_NUM];	//选择菜单
+Menu g_recordMenus[RECORD_MENU_NUM];    //存档菜单
 
 void init_start_menus()
 {
@@ -58,6 +59,19 @@ void init_select_menus()
 	g_selectMenus[1].set_menu("否", 365, 286, 40, 25, 0,
                               g_menuSurface, g_menuFont, g_menuColor);
     g_selectMenus[1].add_listener(select_no);
+}
+
+void init_record_menus()
+{
+    g_recordMenus[0].set_menu("RECORD A", 160, 220, 90, 25, 1,
+                              g_menuSurface, g_menuFont, g_menuColor);
+    g_recordMenus[0].add_listener(read_or_write_record);
+    g_recordMenus[1].set_menu("RECORD B", 160, 245, 90, 25, 0,
+                              g_menuSurface, g_menuFont, g_menuColor);
+    g_recordMenus[1].add_listener(read_or_write_record);
+    g_recordMenus[2].set_menu("RECORD C", 160, 270, 90, 25, 0,
+                              g_menuSurface, g_menuFont, g_menuColor);
+    g_recordMenus[2].add_listener(read_or_write_record);
 }
 
 short get_selected_menu(Menu menuGroup[], short groupSize)

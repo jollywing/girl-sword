@@ -7,15 +7,18 @@
 #define START_MENU_NUM 4
 #define SYS_MENU_NUM 4
 #define SELECT_MENU_NUM 2
+#define RECORD_MENU_NUM 3
 
 class Menu;
 extern Menu g_startMenus[START_MENU_NUM];	//开始菜单
 extern Menu g_sysMenus[SYS_MENU_NUM];	//系统菜单
 extern Menu g_selectMenus[SELECT_MENU_NUM];	//选择菜单
+extern Menu g_recordMenus[RECORD_MENU_NUM];
 
 void init_start_menus();
 void init_system_menus();
 void init_select_menus();
+void init_record_menus();
 
 short get_selected_menu(Menu menuGroup[], short size);
 void change_selected_menu(Menu menuGroup[], short size, char offset);

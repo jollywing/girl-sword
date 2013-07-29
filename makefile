@@ -7,7 +7,7 @@ lflags = `sdl-config --libs` -lSDL_ttf -g
 cc = g++
 
 bin = girl-sword
-objs = Girl.o Map.o Role.o Fighter.o Menu.o Record.o Dialog.o SdlSys.o\
+objs = Girl.o Map.o Role.o Fighter.o Menu.o Dialog.o SdlSys.o\
 	Variable.o Script.o
 
 # on mingw, $(lflags) must be placed after $(objs)
@@ -18,7 +18,7 @@ SdlSys.o: SdlSys.h
 Dialog.o: Dialog.h SdlSys.h
 Menu.o: Menu.h SdlSys.h Girl.h
 Girl.o: Dialog.h Menu.h Girl.h Script.h Variable.h
-Script.o: Script.h Variable.h
+Script.o: Script.h Variable.h Girl.h
 
 %.o:%.cpp
 	$(cc) $(cflags) -c $<
