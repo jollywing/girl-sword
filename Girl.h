@@ -12,6 +12,14 @@
 
 using namespace std;
 
+enum MenuFlag{
+    TITLE_MENU,
+    SYSTEM_MENU,
+    SELECT_MENU
+};
+
+extern MenuFlag g_menuFlag;
+
 //游戏运行状态的宏定义
 #define GAME_LOAD_	0	//游戏数据装载
 #define GAME_TITLE_	1	//游戏开始画面
@@ -21,17 +29,18 @@ using namespace std;
 #define SYSTEM_MENU_	5	//游戏过程中调出系统菜单
 #define WRITE_RECORD_	6	//存写纪录
 #define GAME_MESSAGE_	7	//系统消息
-#define FIGHT_START_	8	//战斗开始
+#define GAME_MENU_      8
+// #define FIGHT_START_	8	//战斗开始
 #define FIGHTING_	9	//战斗进行
-#define FIGHT_END_	10	//战斗结束
+// #define FIGHT_END_	10	//战斗结束
 #define AUTO_PLAY_	11	//自动剧情
-#define TREAT_NPC_	12	//处理NPC事件
-#define BEFORE_SELECT_	13	//弹出等待玩家选择答案的页面
+// #define TREAT_NPC_	12	//处理NPC事件
+// #define BEFORE_SELECT_	13	//弹出等待玩家选择答案的页面
 #define WAIT_SELECT_	14	//等待玩家做出选择
-#define	SELECT_YES_		15	//玩家做出是的选择
-#define SELECT_NO_		16	//玩家做出否的选择
-#define CHECK_STATE_	17	//查看状态
-#define CHECK_ABOUT_	18	//查看作品信息
+// #define	SELECT_YES_		15	//玩家做出是的选择
+// #define SELECT_NO_		16	//玩家做出否的选择
+// #define CHECK_STATE_	17	//查看状态
+// #define CHECK_ABOUT_	18	//查看作品信息
 #define RUN_SCRIPT_     19  //运行脚本
 #define NPC_MOVE_		20	//移动NPC
 
@@ -51,6 +60,8 @@ void fight_fail();
 
 // void FightEnd();	//5 战斗结束
 // void TreatNpc();	//6 处理Npc事件
+void game_menu();
+
 void GameTitle();	//7
 void GameExit();	//8 游戏退出
 void System_Menu();	//9 游戏过程中调出系统菜单
@@ -99,6 +110,14 @@ void MoveNpc();
 void WaitKeyRelease();
 void wait_any_key_press();
 
+void new_game();
+void start_load_game();
+void start_save_game();
+void exit_game();
+void check_game_info();
+void check_player_info();
+void select_yes();
+void select_no();
 
 //操作游戏数据函数
 void InitData();					//1 初始化数据

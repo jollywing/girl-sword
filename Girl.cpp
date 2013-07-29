@@ -2,9 +2,12 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <iostream>
 #include <string.h>
+#include <stdlib.h>
+
+#include <iostream>
 #include <stack>
+
 #include "Girl.h"
 #include "SdlSys.h"
 #include "Script.h"
@@ -28,6 +31,7 @@ short round_num;	//回合数
 short game_running;
 stack<int> stateStack;
 
+MenuFlag g_menuFlag;
 
 //****************************应用程序函数******************************* 
 
@@ -107,14 +111,11 @@ void MainLoop()
 	case GAME_MESSAGE_:	//6
 		GameMessage();
 		break;
-	case WAIT_SELECT_:	//13
-		WaitSelect();
-		break;
+    case GAME_MENU_:
+        game_menu();
+        break;
 	case FIGHTING_:		//8
 		Fighting();
-		break;
-	case SYSTEM_MENU_:	//3
-		System_Menu();
 		break;
 	case READ_RECORD_:	//4
 		Load();
@@ -127,9 +128,6 @@ void MainLoop()
 		break;
 	case NPC_MOVE_:
 		MoveNpc();
-		break;
-	case GAME_TITLE_:	//1
-		GameTitle();
 		break;
 	default:
 		GameExit();
@@ -156,7 +154,9 @@ void InitGame()
 	InitData();	//初始化游戏数据
 
     stateStack.push(MAIN_MOVE_);
-    stateStack.push(GAME_TITLE_);
+    // stateStack.push(GAME_TITLE_);
+    g_menuFlag = TITLE_MENU;
+    stateStack.push(GAME_MENU_);
 	// Flag = GAME_TITLE_;		//推进游戏进度
 }
 
@@ -172,6 +172,55 @@ void new_game()
     RunScripts("初始化");
 }
 
+void start_load_game()
+{
+    DrawRecord();
+    stateStack.pop();
+    stateStack.push(READ_RECORD_);
+}
+
+void start_save_game()
+{
+    DrawRecord();
+    stateStack.push(WRITE_RECORD_);
+}
+
+void check_game_info()
+{
+    ShowAbout();
+    SDL_Flip(screen);
+    wait_any_key_press();
+}
+
+void check_player_info()
+{
+    DrawStateDetail();
+    SDL_Flip(screen);
+    wait_any_key_press();
+}
+
+void select_yes()
+{
+    SetVariableValue("选择", 1);
+    RefreshCanvas();
+    stateStack.pop();
+}
+
+// inline void select_no()
+// because this function is to be called through func pointer,
+// it can not be defined as inline
+void select_no()
+{
+    SetVariableValue("选择", 0);
+    RefreshCanvas();
+    stateStack.pop();
+}
+
+void exit_game()
+{
+    stateStack.push(GAME_EXIT_);
+}
+
 //主角在地图走动的函数
 void MainMove()
 {
@@ -181,8 +230,10 @@ void MainMove()
 
     if (keys[SDLK_ESCAPE]) {
         WaitKeyRelease();
-		DrawSystemMenu();
-        stateStack.push(SYSTEM_MENU_);
+		// DrawSystemMenu();
+        // stateStack.push(SYSTEM_MENU_);
+        g_menuFlag = SYSTEM_MENU;
+        stateStack.push(GAME_MENU_);
 		// Flag = SYSTEM_MENU_;
 		return;
 	}
@@ -279,12 +330,66 @@ void MainMove()
 	}
 }
 
+void game_menu()
+{
+    Menu * menus;
+    short menuNum;
+    SDL_Event e;
+
+    switch(g_menuFlag){
+    case TITLE_MENU:
+        DrawTitle();
+        menus = g_startMenus;
+        menuNum = START_MENU_NUM;
+        break;
+    case SYSTEM_MENU:
+        DrawSystemMenu();
+        menus = g_sysMenus;
+        menuNum = SYS_MENU_NUM;
+        break;
+    case SELECT_MENU:
+        menus = g_selectMenus;
+        menuNum = SELECT_MENU_NUM;
+        draw_menu_group(menus, menuNum, screen);
+    }
+    SDL_Flip(screen);
+
+    SDL_WaitEvent(&e);
+    if(e.type == SDL_KEYDOWN){
+        switch(e.key.keysym.sym){
+        case SDLK_ESCAPE:
+            if(g_menuFlag == TITLE_MENU)
+                exit_game();
+            else if(g_menuFlag == SYSTEM_MENU)
+                stateStack.pop();
+            break;
+        case SDLK_SPACE:
+        case SDLK_RETURN:
+        {
+            PlayWavSound(SELECT);
+            // 一般 case 分支内不允许定义变量，要定义可以象这样用大括号包围起来
+            short selected = get_selected_menu(menus, menuNum);
+            if(menus[selected].on_click)
+                menus[selected].on_click();
+            break;
+        }
+        case SDLK_UP:
+            PlayWavSound(CHANGE_SEL);
+            change_selected_menu(menus, menuNum, -1);
+            break;
+        case SDLK_DOWN:
+            PlayWavSound(CHANGE_SEL);
+            change_selected_menu(menus, menuNum, 1);
+        } // end switch keysym 
+    } // end if SDLK_UP
+}
+
 //开始战斗函数
 void InitFight()
 {
     // Uint8 *keys = SDL_GetKeyState(NULL);
 	// if(keys[SDLK_SPACE]||keys[SDLK_RETURN]) {
-	// 	if (common_diag.is_over()) {
+	// 	if (g_dialog.is_over()) {
     fAqing.Y = current_enemy->Y;
     if(fAqing.bAttack == current_enemy->bAttack )
         fAqing.bAttack = !current_enemy->bAttack;
@@ -297,7 +402,7 @@ void InitFight()
 	// 		// Flag = FIGHTING_;
 	// 	}
 	// 	else {			
-	// 		common_diag.show(screen);
+	// 		g_dialog.show(screen);
 	// 	}
 	// }
 }
@@ -350,14 +455,14 @@ void fight_win()
     int addHp, addDefend, addAttack;
     if (current_enemy->Attack <= fAqing.Defend)
     {
-        addHp = 1;
-        addAttack = 1;
-        addDefend = 1;
+        addHp = rand() % 2;
+        addAttack = rand() % 2;
+        addDefend = rand() % 2;
     }
     else {
-        addHp = current_enemy->HP /10;
-        addAttack = current_enemy->Attack /10;
-        addDefend = current_enemy->Defend /10;
+        addHp = current_enemy->HP / 10 + rand() % 3;
+        addAttack = current_enemy->Attack / 10 + rand() % 2;
+        addDefend = current_enemy->Defend / 10 + rand() % 2;
     }
 
     fAqing.HP += addHp;
@@ -366,8 +471,8 @@ void fight_win()
 
     sprintf( temp, "你战胜了%s！@最大战斗力提升%d，攻击力提升%d，防御力提升%d！", 
              current_enemy->Name, addHp, addAttack, addDefend);
-    common_diag.set_text(temp);
-    common_diag.show(screen);
+    g_dialog.set_text(temp);
+    g_dialog.show(screen);
 
     stateStack.pop();
     stateStack.push(GAME_MESSAGE_);
@@ -382,8 +487,8 @@ void fight_fail()
     current_enemy->cHP = current_enemy->HP;
 
     sprintf(temp, "你输给了%s！", current_enemy->Name );
-    common_diag.set_text(temp);
-    common_diag.show(screen);
+    g_dialog.set_text(temp);
+    g_dialog.show(screen);
 
     stateStack.pop();
     stateStack.push(GAME_MESSAGE_);
@@ -395,11 +500,11 @@ void GameMessage()
     SDL_Event e;
     SDL_WaitEvent(&e);
     if (e.type = SDL_KEYUP){
-		if (common_diag.is_over()) {
+		if (g_dialog.is_over()) {
             stateStack.pop();
 		}
 		else {			
-			common_diag.show(screen);
+			g_dialog.show(screen);
 		}
 	}
 }
@@ -454,100 +559,6 @@ void AutoPlay()
 
 }
 
-//游戏篇头
-void GameTitle()
-{	
-    DrawTitle();
-    SDL_Flip(screen);
-
-    Uint8 *keys = SDL_GetKeyState(NULL);
-
-	if(keys[SDLK_ESCAPE])	//如果按下ESC
-	{
-		//PressKey(VK_ESCAPE);
-        WaitKeyRelease();
-        stateStack.push(GAME_EXIT_);
-        // Flag = GAME_EXIT_;
-		return;
-	}
-
-	//如果敲回车或空格，执行菜单功能
-	if( keys[SDLK_SPACE] )	
-	{
-		//PressKey(VK_SPACE);
-		//play_sound("voc\\PushButton.wav");
-        PlayWavSound(SELECT);
-		if (StartMenu[0].Sel )
-		{
-            new_game();
-		}
-		else if (StartMenu[1].Sel)
-		{
-			DrawRecord();
-            stateStack.pop();
-            stateStack.push(READ_RECORD_);
-			//FlipPage();
-			//Flag = READ_RECORD_;
-		}
-		else if (StartMenu[2].Sel)
-		{
-			ShowAbout();
-            SDL_Flip(screen);
-            wait_any_key_press();
-            //stateStack.push(CHECK_ABOUT_);
-			//FlipPage();
-			//Flag = CHECK_ABOUT_;
-		}
-		else
-		{
-            stateStack.push(GAME_EXIT_);
-			// Flag = GAME_EXIT_;
-		}
-		return;
-	}
-
-	//得到被选中的菜单的索引
-	short selected;
-	for(int i = 0; i < 4; i++)
-	{
-		if (StartMenu[i].Sel)
-		{
-			selected = i;
-			break;
-		}
-	}
-
-
-	if(keys[SDLK_DOWN])
-	{
-		//PressKey(VK_DOWN);
-        WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-        PlayWavSound(CHANGE_SEL);
-		StartMenu[selected].Sel  = 0;
-		selected++;
-		if (selected >= 4)
-			selected = selected%4;
-		StartMenu[selected].Sel = 1;
-		DrawTitle();
-		//FlipPage();
-	}
-	else if(keys[SDLK_UP])
-	{
-		//PressKey(VK_UP);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		StartMenu[selected].Sel = 0;
-		selected--;
-		if(selected <0)
-			selected = 3;
-		StartMenu[selected].Sel = 1;
-		DrawTitle();
-		//FlipPage();
-	}
-}
-
 //游戏退出
 void GameExit()
 {
@@ -573,103 +584,6 @@ void GameExit()
     //counter --;
 }
 
-//游戏过程中调出系统菜单
-void System_Menu()
-{
-    RefreshCanvas();
-    DrawSystemMenu();
-    
-    Uint8 *keys = SDL_GetKeyState(NULL);
-
-	if(keys[SDLK_ESCAPE])	//如果按下ESC
-	{
-		//PressKey(VK_ESCAPE);
-        WaitKeyRelease();
-		RefreshCanvas();
-        stateStack.pop();
-		// Flag = MAIN_MOVE_;
-		return;
-	}
-
-	if(keys[SDLK_SPACE])	//按下空格或回车
-	{
-		//PressKey(VK_SPACE);
-		//play_sound("voc\\PushButton.wav");
-        PlayWavSound(SELECT);
-		if(SystemMenu[0].Sel )
-		{
-			DrawStateDetail();
-            SDL_Flip(screen);
-            wait_any_key_press();
-            // stateStack.push(CHECK_STATE_);
-			// FlipPage();
-			// Flag = CHECK_STATE_;
-		}
-		else if(SystemMenu[1].Sel )
-		{
-			DrawRecord();
-			//FlipPage();
-            stateStack.push(WRITE_RECORD_);
-			// Flag = WRITE_RECORD_;
-		}
-		
-		else if(SystemMenu[2].Sel )
-		{
-			DrawRecord();
-			// FlipPage();
-			// Flag = READ_RECORD_;			
-            stateStack.push(READ_RECORD_);
-		}
-		
-		else if(SystemMenu[3].Sel )
-		{
-            stateStack.push(GAME_EXIT_);
-			// Flag = GAME_EXIT_;
-		}
-		return;
-	}
-
-	//得到被选中的菜单的索引
-	short selected;
-	for(int i = 0; i < 4; i++)
-	{
-		if (SystemMenu[i].Sel)
-		{
-			selected = i;
-			break;
-		}
-	}
-	
-	if(keys[SDLK_DOWN])
-	{
-		//PressKey(VK_DOWN);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-      PlayWavSound(CHANGE_SEL);
-		SystemMenu[selected].Sel = 0;
-		selected++;
-		if (selected >= 4)
-		selected = selected%4;
-		SystemMenu[selected].Sel = 1;
-		DrawSystemMenu();
-		//FlipPage();
-	}
-	else if(keys[SDLK_UP])
-	{
-		//PressKey(VK_UP);
-      WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-        PlayWavSound(CHANGE_SEL);
-		SystemMenu[selected].Sel = 0;
-		selected--;
-		if (selected < 0)
-		selected = 3;
-		SystemMenu[selected].Sel = 1;
-		DrawSystemMenu();
-		//FlipPage();
-	}
-	
-}
 
 //读取进度函数
 void Load()
@@ -708,8 +622,8 @@ void Load()
 		
 		if(LoadData(GameRecord[selected].Location ))
 		{
-            common_diag.set_text("读取进度失败，或是记录不存在，或是旧版本的记录！");
-            common_diag.show(screen);
+            g_dialog.set_text("读取进度失败，或是记录不存在，或是旧版本的记录！");
+            g_dialog.show(screen);
             stateStack.pop();
             stateStack.push(GAME_MESSAGE_);
 			// RefreshCanvas();
@@ -720,8 +634,8 @@ void Load()
 		else
 		{
             RefreshCanvas();
-            common_diag.set_text("读取成功！");
-            common_diag.show(screen);
+            g_dialog.set_text("读取成功！");
+            g_dialog.show(screen);
 			GetMapbyID(Aqing.MapID);
 			RelayoutNpc();
 			stateStack.pop();
@@ -802,8 +716,8 @@ void Store()
 		{
 			RefreshCanvas();
 			DrawSystemMenu();
-            common_diag.set_text("存档失败，检查save目录是否存在！");
-            common_diag.show(screen);
+            g_dialog.set_text("存档失败，检查save目录是否存在！");
+            g_dialog.show(screen);
             stateStack.pop();
             stateStack.push(GAME_MESSAGE_);
 			// Flag = SYSTEM_MENU_;
@@ -811,8 +725,8 @@ void Store()
 		else
 		{
 			RefreshCanvas();
-			common_diag.set_text("存档成功！");
-			common_diag.show(screen);
+			g_dialog.set_text("存档成功！");
+			g_dialog.show(screen);
 	        stateStack.pop();
             stateStack.push(GAME_MESSAGE_);
 		}
@@ -845,48 +759,6 @@ void Store()
 			selected = 2;
 		GameRecord[selected].Selected  = 1;
 		DrawRecord();
-		//FlipPage();
-	}
-	
-}
-
-void WaitSelect()
-{
-    DrawSelectMenu();
-    Uint8 *keys = SDL_GetKeyState(NULL);
-	//如果敲回车或空格，执行菜单功能
-	if( keys[SDLK_SPACE] )	
-	{
-		//PressKey(VK_SPACE);
-		//play_sound("voc\\PushButton.wav");
-        PlayWavSound(SELECT);
-		if (SelectMenu[0].Sel )
-		{
-            SetVariableValue("选择", 1);
-			//Flag = SELECT_YES_;	 
-		}
-		else if (SelectMenu[1].Sel)
-		{
-            SetVariableValue("选择", 0);
-			//Flag = SELECT_NO_;
-		}
-        RefreshCanvas();
-        stateStack.pop();
-        // Flag = oldFlag;
-		return;
-	}
-	
-	
-	if(keys[SDLK_DOWN]||keys[SDLK_UP])
-	{
-		//PressKey(VK_DOWN);
-		//PressKey(VK_UP);
-        WaitKeyRelease();
-		//play_sound("voc\\ChangeButton.wav");
-        PlayWavSound(CHANGE_SEL);
-		SelectMenu[0].Sel = !SelectMenu[0].Sel;
-		SelectMenu[1].Sel = !SelectMenu[1].Sel;
-		DrawSelectMenu();
 		//FlipPage();
 	}
 	
@@ -933,8 +805,8 @@ void RefreshCanvas()
 
 void show_dialog(const char * content)
 {
-    common_diag.set_text(content);
-    common_diag.show(screen);
+    g_dialog.set_text(content);
+    g_dialog.show(screen);
     stateStack.push(GAME_MESSAGE_);
 }
 
@@ -968,28 +840,12 @@ void UpdateFight()
 	}
 }
 
-//画开始菜单
-void DrawStartMenu()
-{
-	StartMenu[0].draw_menu (screen);
-	StartMenu[1].draw_menu (screen);
-	StartMenu[2].draw_menu (screen);
-	StartMenu[3].draw_menu (screen);
-}
 
 //画系统菜单
 void DrawSystemMenu()
 {
-	SystemMenu[0].draw_menu (screen);
-	SystemMenu[1].draw_menu (screen);
-	SystemMenu[2].draw_menu (screen);
-	SystemMenu[3].draw_menu (screen);
-}
-
-void DrawSelectMenu()
-{
-	SelectMenu[0].draw_menu(screen);
-	SelectMenu[1].draw_menu(screen);
+    RefreshCanvas();
+    draw_menu_group(g_sysMenus, SYS_MENU_NUM, screen);
 }
 
 //画纪录
@@ -1004,7 +860,7 @@ void DrawRecord()
 void DrawTitle()
 {
     DrawPic("./pic/title.bmp");
-	DrawStartMenu();
+	draw_menu_group(g_startMenus, START_MENU_NUM, screen);
 }
 
 //画片尾
@@ -1068,15 +924,15 @@ void DrawStateDetail()
     SDL_BlitSurface(info, &rect_src, screen, &rect_dest);
 
 	char temp[50];
-    SDL_BlitText("详细状态信息：", screen, 160, 70, menu_font, menu_color);
+    SDL_BlitText("详细状态信息：", screen, 160, 70, g_menuFont, g_menuColor);
 	sprintf(temp, "姓名：%s ", Aqing.Name);
-    SDL_BlitText(temp, screen, 160, 100, menu_font, menu_color);
+    SDL_BlitText(temp, screen, 160, 100, g_menuFont, g_menuColor);
 	sprintf(temp, "战斗力：%d / %d ", fAqing.cHP, fAqing.HP );
-    SDL_BlitText(temp, screen, 160, 120, menu_font, menu_color);
+    SDL_BlitText(temp, screen, 160, 120, g_menuFont, g_menuColor);
 	sprintf(temp, "攻击力：%d ", fAqing.Attack);
-    SDL_BlitText(temp, screen, 160, 140, menu_font, menu_color);
+    SDL_BlitText(temp, screen, 160, 140, g_menuFont, g_menuColor);
 	sprintf(temp, "防御力：%d ", fAqing.Defend);
-    SDL_BlitText(temp, screen, 160, 160, menu_font, menu_color);
+    SDL_BlitText(temp, screen, 160, 160, g_menuFont, g_menuColor);
 }
 
 //显示作品信息
@@ -1095,7 +951,7 @@ void ShowAbout()
 
     SDL_BlitSurface(info, &rect_src, screen, &rect_dest);
 	
-    SDL_BlitText("作品信息", screen, 115, 40, menu_font, about_color);
+    SDL_BlitText("作品信息", screen, 115, 40, g_menuFont, about_color);
     SDL_BlitText("作品名称：越女剑 for Linux", screen, 115, 65, about_font, about_color);
     SDL_BlitText("版    本：1.5", screen, 115, 80, about_font, about_color);
     SDL_BlitText("功能按键：方向键，空格键和ESC键", screen, 115, 95, about_font, about_color);
@@ -1454,32 +1310,21 @@ Role * FindNpc()	//寻找玩家面对的npc
 //初始化游戏数据
 void InitData()
 {
-		//初始化菜单
-	StartMenu[0].set_menu ("新建游戏",(SCR_W/2)-31,SCR_H-105,
-						  70,25,1,menu, menu_font, &menu_color);
-	StartMenu[1].set_menu ("读    档",(SCR_W/2)-31,SCR_H-80,
-						  70,25,0,menu, menu_font, &menu_color);
-	StartMenu[2].set_menu ("作品信息",(SCR_W/2)-31,SCR_H-55,
-						  70,25,0,menu, menu_font, &menu_color);
-	StartMenu[3].set_menu ("退    出",(SCR_W/2)-31,SCR_H-30,
-						  70,25,0,menu, menu_font, &menu_color);
-	SystemMenu[0].set_menu ("状 态",10,10,50,25,1,menu, menu_font, &menu_color);
-	SystemMenu[1].set_menu ("存 档",10,35,50,25,0,menu, menu_font, &menu_color);
-	SystemMenu[2].set_menu ("读 档",10,60,50,25,0,menu, menu_font, &menu_color);
-	SystemMenu[3].set_menu ("退 出",10,85,50,25,0,menu, menu_font, &menu_color);
-	SelectMenu[0].set_menu("是",365,260,40,25,1,menu, menu_font, &menu_color);
-	SelectMenu[1].set_menu("否",365,286,40,25,0,menu, menu_font, &menu_color);
+    //初始化菜单
+    init_start_menus();
+    init_system_menus();
+    init_select_menus();
 
 	//初始化对话框
-	common_diag.set_dlg(dlg, dlg_font, &dlg_color);
+	g_dialog.set_dlg(dlg, dlg_font, dlg_color);
 
 	//初始化存档
 	GameRecord[0].set_record (160,220,90,25,"存档一",
-		"save/1.sav",1,menu, menu_font, &menu_color);
+		"save/1.sav",1,g_menuSurface, g_menuFont, &g_menuColor);
 	GameRecord[1].set_record (160,245,90,25,"存档二",
-		"save/2.sav",0,menu, menu_font, &menu_color);
+		"save/2.sav",0,g_menuSurface, g_menuFont, &g_menuColor);
 	GameRecord[2].set_record (160,270,90,25,"存档三",
-		"save/3.sav",0,menu, menu_font, &menu_color);
+		"save/3.sav",0,g_menuSurface, g_menuFont, &g_menuColor);
     
     InitMaps();
     InitRoles();

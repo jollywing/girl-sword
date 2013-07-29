@@ -5,8 +5,6 @@
 #include <SDL_ttf.h>
 #include "Role.h"
 
-#define SCR_W 480
-#define SCR_H 320
 #define MAP_NUM		9
 //BOOL flash;
 

@@ -4,6 +4,9 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
+#define SCR_W 480
+#define SCR_H 320
+
 //页面
 extern SDL_Surface *screen;
 extern SDL_Surface *hero;
@@ -13,7 +16,7 @@ extern SDL_Surface *sheep;
 extern SDL_Surface *other_yue;//7 越国杂项页面
 extern SDL_Surface *item;
 extern SDL_Surface *fight;
-extern SDL_Surface *menu;
+extern SDL_Surface *g_menuSurface;
 extern SDL_Surface *dlg;
 extern SDL_Surface *info;
 extern SDL_Surface *state;
@@ -27,13 +30,13 @@ void CreateBmpSurface(SDL_Surface ** surf, const char *bmp_path);
 
 
 // fonts
-extern TTF_Font *menu_font;
+extern TTF_Font *g_menuFont;
 extern TTF_Font *about_font;
 extern TTF_Font *message_font;
 extern TTF_Font *dlg_font;
 
 //colors
-extern SDL_Color menu_color;
+extern SDL_Color g_menuColor;
 extern SDL_Color about_color;
 extern SDL_Color message_color;
 extern SDL_Color dlg_color;

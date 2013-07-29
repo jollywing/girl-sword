@@ -381,12 +381,7 @@ void CScript::ExecuteScriptLine()
 	else if(! strcmp(szCommand, "TALK"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		common_diag.set_text(szStringBuffer);
-		common_diag.show(screen);
-		// FlipPage();
-		// oldFlag = Flag;
-		// Flag = GAME_MESSAGE_;		
-        stateStack.push(GAME_MESSAGE_);
+        show_dialog(szStringBuffer);
 	}
 
 	//格式：	FIGHT name
@@ -397,13 +392,8 @@ void CScript::ExecuteScriptLine()
 		current_enemy = GetFighterAddr(szStringBuffer);
 		sprintf(temp, "你与%s开始战斗！", current_enemy->Name );
         stateStack.push(FIGHTING_);
-        stateStack.push(GAME_MESSAGE_);
-		common_diag.set_text(temp);
-		common_diag.show(screen);
         InitFight();
-		// FlipPage();
-		// oldFlag = Flag;	//保存执行脚本的状态
-		// Flag = FIGHT_START_;		
+        show_dialog(temp);
 	}
 
 	//格式：	REMOVENPC name
@@ -546,13 +536,10 @@ void CScript::ExecuteScriptLine()
 	else if(! strcmp(szCommand, "SELECT"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		common_diag.set_text(szStringBuffer);
-		common_diag.show(screen);
-        stateStack.push(WAIT_SELECT_);
-        stateStack.push(GAME_MESSAGE_);
-		// FlipPage();
-		// oldFlag = Flag;
-		// Flag = BEFORE_SELECT_;
+        g_menuFlag = SELECT_MENU;
+        // stateStack.push(WAIT_SELECT_);
+        stateStack.push(GAME_MENU_);
+        show_dialog(szStringBuffer);
 	}
 
 	++ nCurrentLine;

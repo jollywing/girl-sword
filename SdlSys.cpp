@@ -11,7 +11,7 @@ SDL_Surface *sheep;
 SDL_Surface *other_yue;//7 越国杂项页面
 SDL_Surface *item;
 SDL_Surface *fight;
-SDL_Surface *menu;
+SDL_Surface *g_menuSurface;
 SDL_Surface *dlg;
 SDL_Surface *info;
 SDL_Surface *state;
@@ -49,7 +49,7 @@ void InitSDL( int win )
 
 
 	//3 创建菜单页面
-    CreateBmpSurface(&menu, "./pic/menu.bmp");
+    CreateBmpSurface(&g_menuSurface, "./pic/menu.bmp");
 
     //create dialog background
     CreateBmpSurface(&dlg, "./pic/dlg.bmp");
@@ -115,7 +115,7 @@ void FreeSDL()
     SDL_FreeSurface(other_yue);
     SDL_FreeSurface(item);
     SDL_FreeSurface(fight);
-    SDL_FreeSurface(menu);
+    SDL_FreeSurface(g_menuSurface);
     SDL_FreeSurface(dlg);
     SDL_FreeSurface(info);
     SDL_FreeSurface(state);
@@ -126,13 +126,13 @@ void FreeSDL()
 
 
 // fonts
-TTF_Font *menu_font;
+TTF_Font *g_menuFont;
 TTF_Font *about_font;
 TTF_Font *message_font;
 TTF_Font *dlg_font;
 
 //colors
-SDL_Color menu_color;
+SDL_Color g_menuColor;
 SDL_Color about_color;
 SDL_Color message_color;
 SDL_Color dlg_color;
@@ -144,14 +144,14 @@ void OpenFonts()
         exit(1);
     }
 
-    menu_font = TTF_OpenFont("./font.ttf", 16);
-    if (!menu_font){
+    g_menuFont = TTF_OpenFont("./font.ttf", 16);
+    if (!g_menuFont){
         printf("Unable open font.ttf!\n");
         exit(1);
     }
-    menu_color.r = 220;
-    menu_color.g = 220;
-    menu_color.b = 255;
+    g_menuColor.r = 220;
+    g_menuColor.g = 220;
+    g_menuColor.b = 255;
 
     about_font = TTF_OpenFont("./font.ttf", 12);
     if (!about_font){
@@ -183,8 +183,8 @@ void OpenFonts()
 
 void CloseFonts()
 {
-    TTF_CloseFont(menu_font);
-    menu_font = NULL;
+    TTF_CloseFont(g_menuFont);
+    g_menuFont = NULL;
     TTF_CloseFont(about_font);
     about_font = NULL;
     TTF_CloseFont(message_font);

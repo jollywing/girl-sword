@@ -19,6 +19,7 @@ ADDVAR 见过剑客
 ADDVAR 叫去厢房
 ADDVAR 范蠡邀请
 ADDVAR 教训土匪任务
+ADDVAR 得到火龙果
 RETURN
 
 @ 战败
@@ -229,6 +230,7 @@ IF 击败剑客  = 1
 ELSE
     TALK 阿青的娘：女孩子家别总往外面疯跑，以后怎么嫁人啊。
     TALK 阿青：知道了，老妈。
+ENDIF
 RETURN
 
 @ 绵羊1
@@ -315,15 +317,18 @@ RETURN
 
 @ 李大叔的菜摊
 IF 击败剑客 = 1
-    TALK 李大叔：阿青，这颗火龙果送给你啦。
-    TALK 阿青：啊，它长得好奇怪，谢谢大胡子。
-    TALK 你吃下了奇怪的火龙果，攻击力、防御力各增加2。
-	ADDATTACK 阿青 2
-	ADDDEFEND 阿青 2
-ELSE
-    TALK 李大叔：喂，我看着你呢，不要偷吃啊。
-    TALK 你什么也没有找到。
+    IF 得到火龙果 = 0
+        TALK 李大叔：阿青，这颗火龙果送给你啦。
+        TALK 阿青：啊，它长得好奇怪，谢谢大胡子。
+        TALK 你吃下了奇怪的火龙果，攻击力、防御力各增加2。
+	    ADDATTACK 阿青 2
+	    ADDDEFEND 阿青 2
+        SET 得到火龙果 1
+        RETURN
+    ENDIF
 ENDIF
+TALK 李大叔：喂，我看着你呢，不要偷吃啊。
+TALK 你什么也没有找到。
 RETURN
 
 @ 李大叔
@@ -555,10 +560,11 @@ ELSEIF 击败西施侍卫 = 0
 		TALK 阿青：当然，别以为你长得帅我就不打你！
 		FIGHT 西施的侍卫吴吉庆
 		IF 战胜 = 1
+            DELTRAP 209
 			TALK 吴吉庆：想不到我一生纵横，今天栽在一个小姑娘手里，你可以过去了！
 			SET 击败西施侍卫 1
 			RETURN
-		ELSEIF 战胜 = 0
+		ELSE
 			GOTO 战败
 		ENDIF
 	ELSEIF 选择 = 0
@@ -740,7 +746,7 @@ IF 战胜 = 1
 	TALK 吴吉庆：想不到我一生纵横，今天栽在一个小姑娘手里，你可以过去了！
 	SET 击败西施侍卫 1
 	RETURN
-ELSEIF 战胜 = 0
+ELSE
 	GOTO 战败
 ENDIF
 RETURN

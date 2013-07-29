@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "Fighter.h"
 #include "SdlSys.h"
 
@@ -133,10 +134,10 @@ float Fighter::get_hp_percent()
 short Fighter::get_damage(short eAttack)
 {
 	if(eAttack < Defend ) {
-		return 1;
+		return rand() % 2;
 	}
 	else {
-		return (eAttack - Defend);
+		return (eAttack - Defend + rand() % 5);
 	}
 
 }
