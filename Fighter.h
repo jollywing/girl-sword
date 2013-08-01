@@ -1,73 +1,60 @@
+
+/***************************************************
+ * Author: Jolly Wing (jiqingwu@gmail.com)
+ * Update: 2013-07-29
+ ***************************************************/
+
 #ifndef FIGHTER_H_
 #define FIGHTER_H_
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
+
+class Fighter;
+
+extern Fighter * g_currentEnemy;	//当前的敌人指针
+extern Fighter playerFighter;		//1 战斗的阿青
+
+void init_fighters();
+Fighter * get_fighter(const char * name);
+
 
 class Fighter
 {
 private:
-	short ID;
-	short Index;
-	short Width;
-	short Height;
-	short Left;
-	SDL_Surface *Surf;
-    TTF_Font *Font;
+    // about sprite
+    short rowIndex;
+    short width;
+    short height;
+    char left;
+    SDL_Surface *surface;
 public:
-	char Name[32];
-	short X;
-	short Y;
-	short bAttack;
-	short Attack;
-	short Defend;
-	short HP;	//最大HP
-	short cHP;	//当前的HP
-	char SndPath[32]; //打斗的声音
-	Fighter *F;	//指向Fighter的指针，用于敌人链表
+    short pX;
+    short pY;
+    char attacking;
+
+    short id;  // useless?
+    char name[32]; // useless?
+    short attack;
+    short defend;
+    short maxHp;	//最大HP
+    short hp;	//当前的HP
+    char sound[32]; //打斗的声音
+    Fighter *next;	//指向Fighter的指针，用于敌人链表, useless now.
 
 public:
-	Fighter();
-	~Fighter();
-	void init_fighter(short id, short i, const char * name, short hp, 
-		short att, short def, short x, short y, short w, short h, 
-		short l, short a, SDL_Surface *surf, const char * path,
-        TTF_Font *font);
-	void draw_self(short n, SDL_Surface *dest_surf, int ex, int ey, short eAttack);
-	short can_defend(short damage);
-	short get_damage(short eAttack);
-	void set_hp( short hp);
-	float get_hp_percent();
+    Fighter();
+    ~Fighter();
+    void init_fighter(short id, short i, const char * name, short hp, 
+                      short att, short def, short x, short y, short w, short h, 
+                      char l, char a, SDL_Surface *surf, const char * path);
+    void draw_self(short n, SDL_Surface *destSurface, int ex, int ey, short enemyAttack);
+    short can_defend(short damage);
+    short get_damage(short enemyAttack);
+    void set_hp( short hp);
+    float get_hp_percent();
 
 };
-
-#define FIGHTER_NUM 9
-
-extern Fighter * current_enemy;	//当前的敌人指针
-
-//战斗角色
-extern Fighter fAqing;		//1 战斗的阿青
-extern Fighter fWushi1;	//2
-extern Fighter fWushi2;	//3 战斗的两名吴国剑士
-extern Fighter fYehaizi;	//4 战斗的野孩子
-extern Fighter fJianke;	//5 战斗的神秘剑客
-extern Fighter fWushi;		//6 战斗的武师
-extern Fighter fFeitu;		//7 战斗的匪徒
-extern Fighter fShangping; //8 悍匪商平
-extern Fighter fShiwei;	//9 西施的侍卫
-
-struct stFighterIndex
-{
-	char		szName[32];
-	Fighter		*pFighter;
-};
-
-extern stFighterIndex fighters[FIGHTER_NUM];
-
-void InitFighters();
-void ClearFighter();
-bool AddFighter( const char *, Fighter *);
-Fighter * GetFighterAddr( char *);
 
 
 #endif

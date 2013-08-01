@@ -1,3 +1,9 @@
+
+/***************************************************
+ * Author: Jolly Wing (jiqingwu@gmail.com)
+ * Update: 2013-07-29
+ ***************************************************/
+
 #include "Girl.h"
 #include "Menu.h"
 #include "SdlSys.h"

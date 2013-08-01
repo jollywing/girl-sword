@@ -121,7 +121,7 @@ void InitRoles()
 	Fanli.role_set(2,"范蠡大夫", 80,40, 100, 100, 2,0, FanLi, 13, 0);	//17
     AddRole(Fanli.Name, &Fanli);
 
-	Xishi.role_set(3,"西施", 85, 50, 220,220, 0,0, XiShi, 17, 0);	//18
+	Xishi.role_set(3,"西施", 85, 50, 180, 220, 0,0, XiShi, 17, 0);	//18
     AddRole(Xishi.Name, &Xishi);
 
 	Yehaizi.role_set(4,"草原上的野孩子",95,60, 380, 180, 1, 3, other_yue,15,4 );	//19

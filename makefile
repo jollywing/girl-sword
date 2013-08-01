@@ -17,8 +17,8 @@ $(bin): $(objs)
 SdlSys.o: SdlSys.h
 Dialog.o: Dialog.h SdlSys.h
 Menu.o: Menu.h SdlSys.h Girl.h
-Girl.o: Dialog.h Menu.h Girl.h Script.h Variable.h
-Script.o: Script.h Variable.h Girl.h
+Girl.o: Dialog.h Menu.h Fighter.h Girl.h Script.h Variable.h
+Script.o: Script.h Variable.h Girl.h Fighter.h
 
 %.o:%.cpp
 	$(cc) $(cflags) -c $<

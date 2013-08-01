@@ -428,24 +428,13 @@ void game_menu()
 //开始战斗函数
 void InitFight()
 {
-    // Uint8 *keys = SDL_GetKeyState(NULL);
-	// if(keys[SDLK_SPACE]||keys[SDLK_RETURN]) {
-	// 	if (g_dialog.is_over()) {
-    fAqing.Y = current_enemy->Y;
-    if(fAqing.bAttack == current_enemy->bAttack )
-        fAqing.bAttack = !current_enemy->bAttack;
+    playerFighter.pY = g_currentEnemy->pY;
+    if(playerFighter.attacking == g_currentEnemy->attacking )
+        playerFighter.attacking = !g_currentEnemy->attacking;
 
     frame_fight =0;
     fight_frame_num = 0;
     round_num = 0;
-    //         stateStack.pop();
-    //         stateStack.push(FIGHTING_);
-	// 		// Flag = FIGHTING_;
-	// 	}
-	// 	else {			
-	// 		g_dialog.show(screen);
-	// 	}
-	// }
 }
 
 //战斗中
@@ -471,17 +460,17 @@ void Fighting()
 	}
 
 	if (frame_fight >= 6) {
-		if(fAqing.bAttack) { // AQing attack
-			if (!(current_enemy->can_defend(fAqing.Attack )))
+		if(playerFighter.attacking) { // AQing attack
+			if (!(g_currentEnemy->can_defend(playerFighter.attack )))
                 fight_win();
 		}
 		else {
-			if(!(fAqing.can_defend(current_enemy->Attack)))
+			if(!(playerFighter.can_defend(g_currentEnemy->attack)))
                 fight_fail();
 		}
 		frame_fight =0;
-		fAqing.bAttack = ! fAqing.bAttack;
-		current_enemy->bAttack = !current_enemy->bAttack;
+		playerFighter.attacking = ! playerFighter.attacking;
+		g_currentEnemy->attacking = !g_currentEnemy->attacking;
 	}
 }
 
@@ -490,28 +479,34 @@ void fight_win()
 	char temp[512];
 
     PlayWavSound(QING_VICT);
-    current_enemy->cHP = current_enemy->HP;
+    g_currentEnemy->hp = g_currentEnemy->maxHp;
     SetVariableValue("战胜", 1);
 
     int addHp, addDefend, addAttack;
-    if (current_enemy->Attack <= fAqing.Defend)
+    if (g_currentEnemy->attack <= playerFighter.defend)
     {
-        addHp = rand() % 2;
+        if(round_num > 2)
+            addHp = rand() % round_num;
+        else
+            addHp = rand() % 2;
         addAttack = rand() % 2;
         addDefend = rand() % 2;
     }
     else {
-        addHp = current_enemy->HP / 10 + rand() % 3;
-        addAttack = current_enemy->Attack / 10 + rand() % 2;
-        addDefend = current_enemy->Defend / 10 + rand() % 2;
+        if(round_num > 2)
+            addHp = g_currentEnemy->maxHp / 10 + rand() % round_num;
+        else
+            addHp = g_currentEnemy->maxHp / 10 + rand() % 2;
+        addAttack = g_currentEnemy->attack / 10 + rand() % 2;
+        addDefend = g_currentEnemy->defend / 10 + rand() % 2;
     }
 
-    fAqing.HP += addHp;
-    fAqing.Attack += addAttack;
-    fAqing.Defend += addDefend;
+    playerFighter.maxHp += addHp;
+    playerFighter.attack += addAttack;
+    playerFighter.defend += addDefend;
 
     sprintf( temp, "你战胜了%s！@最大战斗力提升%d，攻击力提升%d，防御力提升%d！", 
-             current_enemy->Name, addHp, addAttack, addDefend);
+             g_currentEnemy->name, addHp, addAttack, addDefend);
     g_dialog.set_text(temp);
     g_dialog.show(screen);
 
@@ -522,12 +517,20 @@ void fight_win()
 void fight_fail()
 {
 	char temp[512];
+    short addHp;
 
     SetVariableValue("战胜", 0);
     PlayWavSound(QING_FAIL);
-    current_enemy->cHP = current_enemy->HP;
+    g_currentEnemy->hp = g_currentEnemy->maxHp;
 
-    sprintf(temp, "你输给了%s！", current_enemy->Name );
+    if(round_num > 2)
+        addHp = rand() % round_num;
+    else
+        addHp = rand() % 2;
+    playerFighter.maxHp += addHp;
+
+    sprintf(temp, "你输给了%s！战斗力增加%d。",
+            g_currentEnemy->name, addHp );
     g_dialog.set_text(temp);
     g_dialog.show(screen);
 
@@ -607,7 +610,7 @@ void GameExit()
     SDL_Flip(screen);
 
 	// current_map = NULL;
-	// current_enemy = NULL;
+	// g_currentEnemy = NULL;
 
     if(g_script) {
         delete g_script;
@@ -665,28 +668,28 @@ void show_dialog(const char * content)
 void UpdateFight()
 {
 	current_map->draw_map_only(screen);
-	if (!fAqing.bAttack)
+	if (!playerFighter.attacking)
 	{
-		fAqing.draw_self(frame_fight, screen, current_enemy->X, current_enemy->Y,current_enemy->Attack );
-		current_enemy->draw_self(frame_fight, screen, fAqing.X, fAqing.Y ,fAqing.Attack);
+		playerFighter.draw_self(frame_fight, screen, g_currentEnemy->pX, g_currentEnemy->pY,g_currentEnemy->attack );
+		g_currentEnemy->draw_self(frame_fight, screen, playerFighter.pX, playerFighter.pY ,playerFighter.attack);
 	}
 	else
 	{
-		current_enemy->draw_self(frame_fight, screen, fAqing.X, fAqing.Y ,fAqing.Attack);
-		fAqing.draw_self(frame_fight, screen, current_enemy->X, current_enemy->Y,current_enemy->Attack );
+		g_currentEnemy->draw_self(frame_fight, screen, playerFighter.pX, playerFighter.pY ,playerFighter.attack);
+		playerFighter.draw_self(frame_fight, screen, g_currentEnemy->pX, g_currentEnemy->pY,g_currentEnemy->attack );
 	}
 	DrawState();
 	DrawRoundNum();
 	//FlipPage();
 	if (frame_fight == 3)
 	{
-		if (fAqing.bAttack)
+		if (playerFighter.attacking)
 		{
-			play_sound(fAqing.SndPath);
+			play_sound(playerFighter.sound);
 		}
 		else
 		{
-			play_sound(current_enemy->SndPath);
+			play_sound(g_currentEnemy->sound);
 		}
 	}
 }
@@ -733,7 +736,7 @@ void DrawState()
     SDL_BlitSurface(state, &rect_src, screen, &rect_dest);
 
 	
-	int width = (int)((fAqing.get_hp_percent()*100));
+	int width = (int)((playerFighter.get_hp_percent()*100));
 	if (width)
 	{
         rect_src.x = 0;
@@ -749,7 +752,7 @@ void DrawState()
 	
 
 	char temp[20];
-	sprintf( temp, "%d/%d", fAqing.cHP, fAqing.HP);
+	sprintf( temp, "%d/%d", playerFighter.hp, playerFighter.maxHp);
     SDL_BlitText(temp, screen, SCR_W-70, 7, about_font, about_color);
 }
 
@@ -771,11 +774,11 @@ void DrawStateDetail()
     SDL_BlitText("详细状态信息：", screen, 160, 70, g_menuFont, g_menuColor);
 	sprintf(temp, "姓名：%s ", Aqing.Name);
     SDL_BlitText(temp, screen, 160, 100, g_menuFont, g_menuColor);
-	sprintf(temp, "战斗力：%d / %d ", fAqing.cHP, fAqing.HP );
+	sprintf(temp, "战斗力：%d / %d ", playerFighter.hp, playerFighter.maxHp );
     SDL_BlitText(temp, screen, 160, 120, g_menuFont, g_menuColor);
-	sprintf(temp, "攻击力：%d ", fAqing.Attack);
+	sprintf(temp, "攻击力：%d ", playerFighter.attack);
     SDL_BlitText(temp, screen, 160, 140, g_menuFont, g_menuColor);
-	sprintf(temp, "防御力：%d ", fAqing.Defend);
+	sprintf(temp, "防御力：%d ", playerFighter.defend);
     SDL_BlitText(temp, screen, 160, 160, g_menuFont, g_menuColor);
 }
 
@@ -1154,7 +1157,7 @@ void InitData()
     
     InitMaps();
     InitRoles();
-    InitFighters();
+    init_fighters();
 
 	//地图中加入Npc
 	Map_aqing.add_npc(&AqingMa, AqingMa.X, AqingMa.Y);	
@@ -1181,7 +1184,7 @@ void InitData()
 	
 	//初始化全局游戏变量
 	current_map = &Map_aqing;
-	current_enemy = NULL;
+	g_currentEnemy = NULL;
 	current_npc_id = 0;
 
     g_script = new CScript("scripts/script", '@');
@@ -1211,10 +1214,10 @@ short LoadData( char * path)
 	fread(&Aqing.Dir, sizeof(int),1,fp);
 	fread(&Aqing.Step, sizeof(int),1,fp);
 	fread(&Aqing.MapID, sizeof(int),1,fp);
-	fread(&fAqing.HP, sizeof(short), 1, fp);
-	fread(&fAqing.cHP, sizeof(short), 1, fp);
-	fread(&fAqing.Attack, sizeof(short), 1,fp);
-	fread(&fAqing.Defend, sizeof(short), 1, fp);
+	fread(&playerFighter.maxHp, sizeof(short), 1, fp);
+	fread(&playerFighter.hp, sizeof(short), 1, fp);
+	fread(&playerFighter.attack, sizeof(short), 1,fp);
+	fread(&playerFighter.defend, sizeof(short), 1, fp);
 
 	//读取其它NPC数据
 	fread(&Puren.X, sizeof(int), 1, fp);
@@ -1279,10 +1282,10 @@ short StoreData(char * path)
 	fwrite(&Aqing.Dir, sizeof(int), 1, fp);
 	fwrite(&Aqing.Step, sizeof(int), 1, fp);
 	fwrite(&Aqing.MapID, sizeof(int), 1, fp);
-	fwrite(&fAqing.HP, sizeof(short), 1, fp);
-	fwrite(&fAqing.cHP, sizeof(short), 1, fp);
-	fwrite(&fAqing.Attack, sizeof(short), 1,fp);
-	fwrite(&fAqing.Defend, sizeof(short), 1, fp);
+	fwrite(&playerFighter.maxHp, sizeof(short), 1, fp);
+	fwrite(&playerFighter.hp, sizeof(short), 1, fp);
+	fwrite(&playerFighter.attack, sizeof(short), 1,fp);
+	fwrite(&playerFighter.defend, sizeof(short), 1, fp);
 
 	//存储其它NPC数据
 	fwrite(&Puren.X, sizeof(int), 1, fp);

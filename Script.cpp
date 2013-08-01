@@ -389,8 +389,8 @@ void CScript::ExecuteScriptLine()
 	{
 		char temp[256];
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		current_enemy = GetFighterAddr(szStringBuffer);
-		sprintf(temp, "你与%s开始战斗！", current_enemy->Name );
+		g_currentEnemy = get_fighter(szStringBuffer);
+		sprintf(temp, "你与%s开始战斗！", g_currentEnemy->name );
         stateStack.push(FIGHTING_);
         InitFight();
         show_dialog(temp);
@@ -496,10 +496,10 @@ void CScript::ExecuteScriptLine()
 	else if(! strcmp(szCommand, "ADDHP"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		Fighter *f = GetFighterAddr( szStringBuffer);
+		Fighter *f = get_fighter( szStringBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		short value = atoi(szNumberBuffer);
-		f->HP += value;
+		f->maxHp += value;
 	}
 
 	//格式：	ADDATTACK name value
@@ -507,10 +507,10 @@ void CScript::ExecuteScriptLine()
 	{
 		Fighter *f;
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		f = GetFighterAddr( szStringBuffer);
+		f = get_fighter( szStringBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		short value = atoi(szNumberBuffer);
-		f->Attack += value;
+		f->attack += value;
 	}
 
 	//格式：	ADDDEFEND name value
@@ -518,18 +518,18 @@ void CScript::ExecuteScriptLine()
 	{
 		Fighter *f;
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		f = GetFighterAddr( szStringBuffer);
+		f = get_fighter( szStringBuffer);
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szNumberBuffer);
 		short value = atoi(szNumberBuffer);
-		f->Defend += value;
+		f->defend += value;
 	}
 
 	//格式：	REFRESH name
 	else if(! strcmp(szCommand, "REFRESH"))
 	{
 		ReadSubString( pScripts[nCurrentLine].szScriptLine, szStringBuffer);
-		Fighter *f = GetFighterAddr( szStringBuffer);
-		f->cHP = f->HP;
+		Fighter *f = get_fighter( szStringBuffer);
+		f->hp = f->maxHp;
 	}
 
 	//格式：	SELECT words
